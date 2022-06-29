@@ -1,5 +1,61 @@
+<script>
+	import { onMount, onDestroy } from 'svelte'
+	let activated = false
+	let content = ''
+    var match_cmd = function(s) {
+        var match = s.match('^([A-Za-z]*)( (.*))?')
+        return [match[1], match[3]]
+    }
+	onMount(async () => {
+		var ws = new WebSocket("ws://localhost:8000/madness/live")
+		ws.onmessage = (event) => {
+            var [cmd, value] = match_cmd(event.data)
+            switch (cmd) {
+                case 'CONNECT':
+                    console.log('CONNECT', value)
+                    break
+                case 'ACTIVATE':
+                    console.log('ACTIVATE')
+                    activated = true
+                    break
+                case 'CLEAR':
+                    console.log('CLEAR')
+                    content = ''
+                    break
+                case 'UPDATE':
+                    console.log('UPDATE ' + value)
+                    content = value
+                    break
+                case 'APPEND':
+                    console.log('APPEND ' + value)
+                    content = content + value
+                    break
+                case 'DEACTIVATE':
+                    console.log('DEACTIVATE')
+                    activated = false
+                    content = ''
+                    break
+            }
+		}
+
+		ws.onclose = (event) => {
+			activated = false
+			console.log('DISCONNECT')
+		}
+	})
+
+	onDestroy(() => {
+		ws.close()
+		activated = false
+	})
+</script>
+
 <div class='container'>
-	<slot></slot>
+	{#if !activated}
+		<slot></slot>
+	{:else}
+		<div class='monkey'>{content}</div>
+	{/if}
 </div>
 
 <style>

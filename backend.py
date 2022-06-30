@@ -1,3 +1,4 @@
+import sys
 import asyncio
 from uuid import uuid4
 import logging
@@ -142,8 +143,8 @@ login_html = """
 """
 
 
-CREDENTIALS = ("aidaco", "bongiorno")
-JWT_SECRET = "secret value"
+CREDENTIALS = ("username", "password")
+JWT_SECRET = "secret"
 
 
 @api.get("/login")
@@ -230,10 +231,14 @@ async def ws_connect(websocket: WebSocket):
         await asyncio.sleep(0.5)
 
 
-def main():
+def main(username: str, password: str, jwt_secret: str):
+    global CREDENTIALS, JWT_SECRET
+    CREDENTIALS = (username, password)
+    JWT_SECRET = jwt_secret
 
     uvicorn.run(api, host="0.0.0.0", port=8000, log_level=logging.WARNING)
 
 
 if __name__ == "__main__":
-    main()
+    args = sys.argv
+    main(args[1], args[2], args[3])

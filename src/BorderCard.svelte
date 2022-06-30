@@ -1,5 +1,6 @@
 <script>
 	import { onMount, onDestroy } from 'svelte'
+	const url = "ws://aidaco.dev/madness/live"
 	let activated = false
 	let content = ''
     var match_cmd = function(s) {
@@ -7,7 +8,7 @@
         return [match[1], match[3]]
     }
 	onMount(async () => {
-		var ws = new WebSocket("ws://192.168.1.72:8000/madness/live")
+		var ws = new WebSocket(url)
 		ws.onmessage = (event) => {
             var [cmd, value] = match_cmd(event.data)
             switch (cmd) {

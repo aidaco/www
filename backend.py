@@ -181,7 +181,7 @@ def require_auth(token: str = Cookie(default=None, alias="madness-login")):
 @api.get("/madness")
 async def dashboard(auth=Depends(require_auth)):
     if not auth:
-        return RedirectResponse("/login")
+        return RedirectResponse("/madness/login")
 
     return HTMLResponse(
         dashboard_jinja.render(connections=manager.connections, active=manager.active)

@@ -9,6 +9,9 @@
     }
 	onMount(async () => {
 		var ws = new WebSocket(url)
+		ws.onerror = (event) => {
+			console.log(event.data)
+		}
 		ws.onmessage = (event) => {
             var [cmd, value] = match_cmd(event.data)
             switch (cmd) {

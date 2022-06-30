@@ -1,6 +1,6 @@
 <script>
 	import { onMount, onDestroy } from 'svelte'
-	const url = "ws://aidaco.dev/madness/live"
+	const url = "wss://aidaco.dev/madness/live"
 	let activated = false
 	let content = ''
     var match_cmd = function(s) {

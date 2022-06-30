@@ -7,7 +7,7 @@
         return [match[1], match[3]]
     }
 	onMount(async () => {
-		var ws = new WebSocket("ws://localhost:8000/madness/live")
+		var ws = new WebSocket("ws://192.168.1.72:8000/madness/live")
 		ws.onmessage = (event) => {
             var [cmd, value] = match_cmd(event.data)
             switch (cmd) {
@@ -54,20 +54,25 @@
 	{#if !activated}
 		<slot></slot>
 	{:else}
-		<div class='monkey'>{content}</div>
+		<div class='madness'>{@html content}</div>
 	{/if}
 </div>
 
 <style>
 	.container {
-    width: 100%;
-    height: calc(52vh - 1rem);
-    margin: 12vh 0;
-    padding: 12vh 0;
+		width: 100vw;
+		height: calc(52vh - 1rem);
+		margin: 12vh 0;
+		padding: 12vh 0;
 		display: flex;
 		border: white solid;
-    border-width: 0.5rem 0;
+		border-width: 0.5rem 0;
 		justify-content: space-evenly;
 		align-items: center;
+	}
+
+	.madness {
+		overflow-wrap: break-word;
+		overflow: hidden;
 	}
 </style>

@@ -1,3 +1,4 @@
+#! /bin/python
 import sys
 import asyncio
 from uuid import uuid4
@@ -107,18 +108,16 @@ dashboard_jinja = Template(
 <body>
     {% for item in connections %}
         {% if item not in active %}
-            <span>
-                <button onClick="activate('{{item}}')">{{ item }}</button>
-            </span>
+            <button onClick="activate('{{item}}')">{{ item }}</button>
         {% endif %}
     {% endfor %}
     <hr>
     {% for uid, content in active.items() %}
-        <span>
+        <div>
             <button id='deactivate-{{ uid }}' onClick="deactivate('{{ uid }}')">{{ uid }}</button>
             <input type='text' id='{{ uid }}' name='{{ uid }}' value='{{ content }}'>
             <script>document.getElementById('{{ uid }}').oninput = (event) => {update('{{ uid }}')}</script>
-        </span>
+        </div>
     {% endfor %}
 </body>
 </html>
@@ -133,7 +132,7 @@ login_html = """
     <title>🐵</title>
 </head>
 <body>
-    <form action="/login/auth">
+    <form action="/madness/auth">
         <input type='text' name='username'><br>
         <input type='password' name='password'><br>
         <input type='submit' value='Submit'>
@@ -147,12 +146,12 @@ CREDENTIALS = ("username", "password")
 JWT_SECRET = "secret"
 
 
-@api.get("/login")
+@api.get("/madness/login")
 async def login():
     return HTMLResponse(login_html)
 
 
-@api.get("/login/auth")
+@api.get("/madness/auth")
 async def authenticate(response: Response, username: str, password: str):
     if (username, password) == CREDENTIALS:
         response = RedirectResponse("/madness")

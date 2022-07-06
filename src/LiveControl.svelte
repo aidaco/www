@@ -34,17 +34,17 @@
 
 <div>
   {#if !active}
-    <button class="connected" on:click={dispatch("ACTIVATE", uid)}>{uid}</button
+    <button class="connected" on:click={activate()}>{uid}</button
     >
     <input type="text" bind:value={content} disabled />
   {:else}
-    <button class="activated" on:click={dispatch("DEACTIVATE", uid, "")}
+    <button class="activated" on:click={deactivate()}
       >{uid}</button
     >
     <input
       type="text"
       bind:value={content}
-      on:input={dispatch("UPDATE", uid, content.replace("\n", "<br>"))}
+      on:input={update()}
     />
   {/if}
 </div>

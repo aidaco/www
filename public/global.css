@@ -9,19 +9,3 @@ body {
 	font-family: monospace;
 	font-size: 18px;
 }
-
-a {
-	color: rgb(105,155,255);
-	text-decoration: none;
-}
-
-a:hover {
-	text-transform: underline;
-}
-a:hover::after {
-	content:' 🔗';
-}
-
-a:visited {
-	color: rgb(166,104,227);
-}

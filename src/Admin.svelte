@@ -7,11 +7,15 @@
   async function refresh() {
     const response = await fetch("/api/state");
     state = await response.json();
-    setTimeout(refresh, 500);
+  }
+
+  async function auto_refresh() {
+    refresh();
+    setTimeout(auto_refresh, 5000);
   }
 
   onMount(async () => {
-    refresh();
+    auto_refresh();
   });
 </script>
 

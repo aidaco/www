@@ -13,6 +13,20 @@
       }),
     });
   }
+
+  function activate() {
+    dispatch("ACTIVATE", uid);
+    active = true;
+  }
+
+  function update() {
+    dispatch("UPDATE", uid, content);
+  }
+
+  function deactivate() {
+    dispatch("DEACTIVATE", uid);
+    active = false;
+  }
   export let uid;
   export let active;
   export let content;

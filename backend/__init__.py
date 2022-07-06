@@ -132,6 +132,7 @@ async def dispatch_command(
     command: Command,
     auth=Depends(auth.TokenBearer()),
 ):
+    log.info(f'Dispatching {command}')
     match command.command:
         case "ACTIVATE":
             await manager.activate(command.uid)

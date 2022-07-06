@@ -10,12 +10,12 @@
   }
 
   async function auto_refresh() {
-    refresh();
+    await refresh();
     setTimeout(auto_refresh, 5000);
   }
 
   onMount(async () => {
-    auto_refresh();
+    await auto_refresh();
   });
 </script>
 

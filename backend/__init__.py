@@ -74,15 +74,6 @@ class WSManager:
         except WebSocketDisconnect:
             self.disconnect(uid)
 
-    async def clear(self, uid: str):
-        try:
-            await self.connections[uid].send_text("CLEAR")
-            self.active[uid] = ""
-        except KeyError:
-            raise HTTPException(404, "Not found.")
-        except WebSocketDisconnect:
-            self.disconnect(uid)
-
 
 manager = WSManager()
 api = FastAPI()

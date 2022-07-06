@@ -1,28 +1,22 @@
-#! /bin/python
-import sys
 import asyncio
+import logging
 from pathlib import Path
 from uuid import uuid4
-import logging
-from datetime import datetime, timedelta
 
 import uvicorn
-import jwt
-from jinja2 import Template
-from pydantic import BaseModel
 from fastapi import (
+    Depends,
     FastAPI,
-    WebSocket,
-    WebSocketDisconnect,
+    HTTPException,
     Request,
     Response,
-    Depends,
-    HTTPException,
+    WebSocket,
+    WebSocketDisconnect,
 )
-from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
+from pydantic import BaseModel
 
 from . import auth
-
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.StreamHandler())
@@ -38,7 +32,7 @@ class WSManager:
         await websocket.accept()
         uid = str(uuid4())
         try:
-            await websocket.send_text(f"CONNECT")
+            await websocket.send_text("CONNECT")
             self.connections[uid] = websocket
             self.state[uid] = (False, "")
             log.info(f"Connected {uid}")
@@ -55,7 +49,7 @@ class WSManager:
 
     async def activate(self, uid: str):
         try:
-            await self.connections[uid].send_text(f"ACTIVATE")
+            await self.connections[uid].send_text("ACTIVATE")
             self.state[uid] = (True, self.state[uid][1])
         except KeyError:
             raise HTTPException(404, "Not found.")
@@ -64,7 +58,7 @@ class WSManager:
 
     async def deactivate(self, uid: str):
         try:
-            await self.connections[uid].send_text(f"DEACTIVATE")
+            await self.connections[uid].send_text("DEACTIVATE")
             self.state[uid] = (False, self.state[uid][1])
         except KeyError:
             raise HTTPException(404, "Not found.")
@@ -82,7 +76,7 @@ class WSManager:
 
     async def clear(self, uid: str):
         try:
-            await self.connections[uid].send_text(f"CLEAR")
+            await self.connections[uid].send_text("CLEAR")
             self.active[uid] = ""
         except KeyError:
             raise HTTPException(404, "Not found.")
@@ -124,7 +118,7 @@ async def ws_connect(websocket: WebSocket):
     uid = await manager.connect(websocket)
     while uid in manager.connections:
         try:
-            data = await websocket.receive_text()
+            await websocket.receive_text()
         except WebSocketDisconnect:
             manager.disconnect(uid)
         await asyncio.sleep(0.5)
@@ -155,6 +149,7 @@ async def dispatch_command(
         case "DEACTIVATE":
             await manager.deactivate(command.uid)
 
+
 @api.get("/protected/{path:path}")
 async def protected_file(path: str, auth=Depends(auth.TokenBearer())):
     path = Path("protected") / path
@@ -162,6 +157,7 @@ async def protected_file(path: str, auth=Depends(auth.TokenBearer())):
     if not path.is_file():
         raise HTTPException(status_code=404, detail="Not Found.")
     return FileResponse(path)
+
 
 @api.get("/{path:path}")
 async def public_file(path: str):
@@ -172,8 +168,6 @@ async def public_file(path: str):
     if not path.is_file():
         raise HTTPException(status_code=404, detail="Not Found.")
     return FileResponse(path)
-
-
 
 
 def main(username: str, password: str, jwt_secret: str):

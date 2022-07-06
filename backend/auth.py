@@ -2,10 +2,9 @@ import logging
 from datetime import datetime, timedelta
 
 import jwt
-from rich.logging import RichHandler
-from fastapi import FastAPI, Depends, HTTPException, Request, Cookie
-from fastapi.responses import RedirectResponse
+from fastapi import Cookie, Depends, FastAPI, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from rich.logging import RichHandler
 
 log = logging.getLogger(__name__)
 log.addHandler(RichHandler())
@@ -25,7 +24,7 @@ class LoginRequired(Exception):
 
 def make_token(data: dict[str, str]):
     return jwt.encode(
-            data | {"exp": round((datetime.now() + JWT_EXPIRE).timestamp())},
+        data | {"exp": round((datetime.now() + JWT_EXPIRE).timestamp())},
         JWT_SECRET,
         algorithm="HS256",
     )
@@ -64,7 +63,9 @@ class TokenBearer:
         header: str | None = Depends(oauth2_scheme),
         cookie: str | None = Cookie(default=None, alias="Authorization"),
     ):
-        token = cookie if check_token(cookie) else (header if check_token(header) else None)
+        token = (
+            cookie if check_token(cookie) else (header if check_token(header) else None)
+        )
         if not bool(token):
             if self.redirect:
                 raise LoginRequired()

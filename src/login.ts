@@ -1,7 +1,7 @@
-import Login from './Login.svelte';
+import Login from "./Login.svelte";
 
 const app = new Login({
-	target: document.body,
+  target: document.body,
 });
 
 export default app;

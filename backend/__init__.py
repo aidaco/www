@@ -162,7 +162,8 @@ async def public_file(path: str):
     return FileResponse(path)
 
 
-def main(username: str, password: str, jwt_secret: str):
-    auth.CREDENTIALS = (username, password)
+def main(username: str, password_hash: str, jwt_secret: str):
+    auth.USERNAME = username
+    auth.PASSWORD_HASH = password_hash
     auth.JWT_SECRET = jwt_secret
     uvicorn.run(api, host="0.0.0.0", port=8000, log_level=logging.INFO)

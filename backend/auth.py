@@ -5,13 +5,17 @@ import jwt
 from fastapi import Cookie, Depends, FastAPI, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from rich.logging import RichHandler
+import argon2
 
 log = logging.getLogger(__name__)
 log.addHandler(RichHandler())
 log.setLevel(logging.INFO)
 api = FastAPI()
 
-CREDENTIALS = ("username", "password")
+hasher = argon2.PasswordHasher()
+USERNAME = "username"
+PASSWORD_HASH = "password_hash"
+
 JWT_SECRET = "supersecretvalue"
 JWT_EXPIRE = timedelta(days=1)
 
@@ -46,7 +50,7 @@ class LoginRequest:
         self.token = self.tokenize()
 
     def authenticate(self) -> bool:
-        return (self.username, self.password) == CREDENTIALS
+        return self.username == USERNAME and hasher.verify(PASSWORD_HASH, self.password)
 
     def tokenize(self) -> str | None:
         if self.authenticated:
@@ -63,9 +67,7 @@ class TokenBearer:
         header: str | None = Depends(oauth2_scheme),
         cookie: str | None = Cookie(default=None, alias="Authorization"),
     ):
-        token = (
-            cookie if check_token(cookie) else (header if check_token(header) else None)
-        )
+        token = cookie if check_token(cookie) else (header if check_token(header) else None)
         if not bool(token):
             if self.redirect:
                 raise LoginRequired()

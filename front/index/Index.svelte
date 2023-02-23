@@ -1,6 +1,6 @@
 <script lang="ts">
-  import BorderCard from "./BorderCard.svelte";
-  import WSRewrite from "./WSRewrite.svelte";
+  import BorderCard from "/lib/BorderCard.svelte";
+  import WSRewrite from "/lib/WSRewrite.svelte";
 </script>
 
 <main>
@@ -53,6 +53,9 @@
     height: 100%;
     margin: 0;
     padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   .rot-cont {

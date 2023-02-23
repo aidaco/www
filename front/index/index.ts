@@ -1,7 +1,7 @@
 import Index from "./Index.svelte";
 
-const app = new Index({
+const index = new Index({
   target: document.body,
 });
 
-export default app;
+export default index;

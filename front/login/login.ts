@@ -1,7 +1,7 @@
 import Login from "./Login.svelte";
 
-const app = new Login({
+const login = new Login({
   target: document.body,
 });
 
-export default app;
+export default login;

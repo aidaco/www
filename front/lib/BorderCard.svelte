@@ -4,13 +4,13 @@
 
 <style>
   .container {
-    width: 100vw;
-    height: calc(52vh - 1rem);
-    margin: 12vh 0;
-    padding: 12vh 0;
+    min-width: 40vw;
+    min-height: 30vh;
+    padding: 5vw;
+    border: gray solid;
+    border-radius: 5%;
+    border-width: 0.25rem;
     display: flex;
-    border: white solid;
-    border-width: 0.5rem 0;
     justify-content: space-evenly;
     align-items: center;
   }

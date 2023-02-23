@@ -1,5 +1,5 @@
 <script lang="ts">
-  import BorderCard from "./BorderCard.svelte";
+  import BorderCard from "/lib/BorderCard.svelte";
 
   let username;
   let password;
@@ -55,5 +55,35 @@
     height: 100%;
     margin: 0;
     padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  button {
+	appearance: none;
+	background-color: transparent;
+	color: white;
+	border: 2px solid gray;
+	margin: 0.5rem;
+	padding: 0.5rem;
+	box-sizing: border-box;
+	width: 100%;
+  }
+
+  input {
+	appearance: none;
+	background-color: transparent;
+	border: 2px solid gray;
+	color: white;
+	padding: 0.5rem;
+	margin: 0.5rem;
+	width: 100%;
+	box-sizing: border-box;
+  }
+
+  input::placeholder {
+	color: lightgray;
+	opacity: 1;
   }
 </style>

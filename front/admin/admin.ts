@@ -1,7 +1,7 @@
 import Admin from "./Admin.svelte";
 
-const app = new Admin({
+const admin = new Admin({
   target: document.body,
 });
 
-export default app;
+export default admin;

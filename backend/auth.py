@@ -67,7 +67,9 @@ class TokenBearer:
         header: str | None = Depends(oauth2_scheme),
         cookie: str | None = Cookie(default=None, alias="Authorization"),
     ):
-        token = cookie if check_token(cookie) else (header if check_token(header) else None)
+        token = (
+            cookie if check_token(cookie) else (header if check_token(header) else None)
+        )
         if not bool(token):
             if self.redirect:
                 raise LoginRequired()

@@ -1,14 +1,23 @@
 <script>
   import { onMount, onDestroy } from "svelte";
-  const url = "wss://aidan.software/api/live";
+  const url = "/api/live";
   let activated = false;
   let content = "";
+
+  function makeWebSocket(path) {
+    var protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://'
+    var host = window.location.hostname
+    var defaultPort = window.location.protocol === 'https:' ? '443' : '80'
+    var port = window.location.port === defaultPort ? '' : ':'+window.location.port
+    return new WebSocket(protocol + host + port + path)
+  }
+
   var match_cmd = function (s) {
     var match = s.match("^([A-Za-z]*)( (.*))?");
     return [match[1], match[3]];
   };
   onMount(async () => {
-    var ws = new WebSocket(url);
+    var ws = makeWebSocket(url);
     ws.onerror = (event) => {
       console.log(event.data);
     };

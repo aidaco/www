@@ -1,6 +1,7 @@
-import aiosqlite
-from pathlib import Path
 import time
+from pathlib import Path
+
+import aiosqlite
 
 from .core import api
 
@@ -38,7 +39,15 @@ async def closedb():
 async def _insert(request, received, elapsed):
     await db.execute(
         "INSERT INTO requests("
-        "received_ts_ns, elapsed_ns, method, url, headers, query_params, path_params, client, cookies"
+        "received_ts_ns,"
+        "elapsed_ns,"
+        "method,"
+        "url,"
+        "headers,"
+        "query_params,"
+        "path_params,"
+        "client,"
+        "cookies"
         ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
         (
             received,

@@ -1,17 +1,19 @@
 from pathlib import Path
 
-from fastapi import HTTPException, Depends
+from fastapi import Depends, HTTPException
 from fastapi.responses import FileResponse
 
-from .core import api
 from . import auth
+from .core import api
 
 PUBLIC_ROOT = Path.cwd() / "public/dist"
 ADMIN_ROOT = Path.cwd() / "admin/dist"
 
 
 def _resolve_static_path(
-    root: Path, path: str, exc: Exception = HTTPException(status_code=404, detail="Not Found.")
+    root: Path,
+    path: str,
+    exc: Exception = HTTPException(status_code=404, detail="Not Found."),
 ):
     if path.startswith("/"):
         path = path[1:]

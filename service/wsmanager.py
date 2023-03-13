@@ -1,8 +1,10 @@
 import logging
 from uuid import uuid4
-from fastapi import WebSocket, WebSocketDisconnect, HTTPException
+
+from fastapi import HTTPException, WebSocket, WebSocketDisconnect
 
 log = logging.getLogger(__name__)
+
 
 class WSManager:
     def __init__(self):

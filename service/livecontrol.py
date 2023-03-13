@@ -1,17 +1,20 @@
-import logging
 import asyncio
-from pydantic import BaseModel
-from fastapi import WebSocket, WebSocketDisconnect, Depends, Response
+import logging
 
-from .core import api, manager
+from fastapi import Depends, Response, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel
+
 from . import auth
+from .core import api, manager
 
 log = logging.getLogger(__name__)
+
 
 class Command(BaseModel):
     command: str
     uid: str
     content: str = ""
+
 
 @api.websocket("/api/live")
 async def ws_connect(websocket: WebSocket):
@@ -28,6 +31,7 @@ async def ws_connect(websocket: WebSocket):
 async def active(response: Response, auth=Depends(auth.TokenBearer())):
     return manager.state
 
+
 @api.post("/api/dispatch")
 async def dispatch_command(
     response: Response,
@@ -42,4 +46,3 @@ async def dispatch_command(
             await manager.update(command.uid, command.content)
         case "DEACTIVATE":
             await manager.deactivate(command.uid)
-

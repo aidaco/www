@@ -1,9 +1,9 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import argon2
 import jwt
-from fastapi import Cookie, Depends, FastAPI, HTTPException, Request
+from fastapi import Cookie, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
@@ -26,10 +26,10 @@ def check_token(token: str) -> bool:
     try:
         return jwt.decode(token, core.JWT_SECRET, algorithms=["HS256"])
     except jwt.DecodeError:
-        log.info(f'Invalid token.')
+        log.info("Invalid token.")
         return None
     except jwt.ExpiredSignatureError:
-        log.info(f'Expired token.')
+        log.info("Expired token.")
         return None
 
 
@@ -42,7 +42,9 @@ class LoginRequest:
         self.token = self.tokenize()
 
     def authenticate(self) -> bool:
-        return self.username == core.USERNAME and hasher.verify(core.PASSWORD_HASH, self.password)
+        return self.username == core.USERNAME and hasher.verify(
+            core.PASSWORD_HASH, self.password
+        )
 
     def tokenize(self) -> str | None:
         if self.authenticated:
@@ -68,7 +70,9 @@ class TokenBearer:
         header: str | None = Depends(oauth2_scheme),
         cookie: str | None = Cookie(default=None, alias="Authorization"),
     ):
-        token = cookie if check_token(cookie) else (header if check_token(header) else None)
+        token = (
+            cookie if check_token(cookie) else (header if check_token(header) else None)
+        )
         if not bool(token):
             if self.redirect:
                 raise LoginRequired()

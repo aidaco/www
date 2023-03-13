@@ -1,6 +1,6 @@
 import sys
 
-from . import core, requestdb, auth, livecontrol, staticfiles
+from . import core
 
 if __name__ == "__main__":
     args = sys.argv

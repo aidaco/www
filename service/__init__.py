@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import re
 from pathlib import Path
 from uuid import uuid4
 
@@ -79,9 +80,9 @@ manager = WSManager()
 api = FastAPI()
 
 
-@api.get("/login")
-async def login():
-    return await public_file("login.html")
+# @api.get("/login")
+# async def login():
+#     return await public_file("login.html")
 
 
 @api.post("/login")
@@ -97,11 +98,6 @@ async def authenticate(request: auth.LoginRequest = Depends()):
 @api.exception_handler(auth.LoginRequired)
 async def login_redirect(request: Request, exc: auth.LoginRequired):
     return RedirectResponse(url="/login")
-
-
-@api.get("/madness")
-async def index(auth=Depends(auth.TokenBearer(redirect=True))):
-    return await protected_file("admin.html")
 
 
 @api.websocket("/api/live")
@@ -142,21 +138,42 @@ async def dispatch_command(
             await manager.deactivate(command.uid)
 
 
-@api.get("/protected/{path:path}")
-async def protected_file(path: str, auth=Depends(auth.TokenBearer())):
-    path = Path("protected") / path
+EXT_RE = re.compile(r"^.*(\..*)$")
 
+ADMIN_ROOT = Path.cwd() / "admin/dist"
+
+
+@api.get("/admin")
+async def base_admin():
+    return await protected_file("")
+
+
+@api.get("/admin/{path:path}")
+async def protected_file(path: str, auth=Depends(auth.TokenBearer(redirect=True))):
+    log.info(f'GET ADMIN "{path}"')
+    if path.startswith("/"):
+        path = path[1:]
+    path = ADMIN_ROOT / path
+    log.info(f"RESOLVE ADMIN {path.resolve()}")
+
+    if path.is_dir():
+        path /= "index.html"
     if not path.is_file():
         raise HTTPException(status_code=404, detail="Not Found.")
     return FileResponse(path)
 
 
+PUBLIC_ROOT = Path.cwd() / "public/dist"
+
+
 @api.get("/{path:path}")
 async def public_file(path: str):
-    if path == "":
-        path = "index.html"
-    path = Path("public") / path
+    log.info(f'GET "{path}"')
+    path = PUBLIC_ROOT / path
+    log.info(f'RESOLVE "{path.resolve()}"')
 
+    if path.is_dir():
+        path /= "index.html"
     if not path.is_file():
         raise HTTPException(status_code=404, detail="Not Found.")
     return FileResponse(path)

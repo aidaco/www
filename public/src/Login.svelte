@@ -1,5 +1,5 @@
 <script lang="ts">
-  import BorderCard from "/lib/BorderCard.svelte";
+  import BorderCard from "./BorderCard.svelte";
 
   let username;
   let password;

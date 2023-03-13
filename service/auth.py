@@ -1,11 +1,11 @@
 import logging
 from datetime import datetime, timedelta
 
+import argon2
 import jwt
 from fastapi import Cookie, Depends, FastAPI, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from rich.logging import RichHandler
-import argon2
 
 log = logging.getLogger(__name__)
 log.addHandler(RichHandler())
@@ -59,8 +59,13 @@ class LoginRequest:
 
 
 class TokenBearer:
-    def __init__(self, redirect: bool = False):
+    def __init__(
+        self,
+        exc: HTTPException = HTTPException(status_code=400, detail="Unauthorized."),
+        redirect: bool = False,
+    ):
         self.redirect = redirect
+        self.exc = exc
 
     def __call__(
         self,
@@ -73,5 +78,4 @@ class TokenBearer:
         if not bool(token):
             if self.redirect:
                 raise LoginRequired()
-            else:
-                raise HTTPException(status_code=400, detail="Unauthorized.")
+            raise self.exc

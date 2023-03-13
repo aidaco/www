@@ -1,5 +1,6 @@
-import argon2
 import sys
+
+import argon2
 
 
 def main():

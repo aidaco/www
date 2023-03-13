@@ -1,4 +1,4 @@
-import Admin from "./Admin.svelte";
+import Admin from "./src/Admin.svelte";
 
 const admin = new Admin({
   target: document.body,

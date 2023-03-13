@@ -1,6 +1,6 @@
 <script lang="ts">
-  import BorderCard from "/lib/BorderCard.svelte";
-  import WSRewrite from "/lib/WSRewrite.svelte";
+  import BorderCard from "./BorderCard.svelte";
+  import WSRewrite from "./WSRewrite.svelte";
 </script>
 
 <main>

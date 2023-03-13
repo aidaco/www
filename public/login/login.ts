@@ -1,4 +1,4 @@
-import Login from "./Login.svelte";
+import Login from "/src/Login.svelte";
 
 const login = new Login({
   target: document.body,

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import BorderCard from "/lib/BorderCard.svelte";
-  import LiveControl from "/lib/LiveControl.svelte";
+  import BorderCard from "./BorderCard.svelte";
+  import LiveControl from "./LiveControl.svelte";
   import { onMount } from "svelte";
 
   var state = {};

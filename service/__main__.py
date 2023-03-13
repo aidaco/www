@@ -1,7 +1,7 @@
 import sys
 
-from . import main
+from . import core, requestdb, auth, livecontrol, staticfiles
 
 if __name__ == "__main__":
     args = sys.argv
-    main(args[1], args[2], args[3])
+    core.main(args[1], args[2], args[3])

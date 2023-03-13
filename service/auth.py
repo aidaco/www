@@ -3,41 +3,33 @@ from datetime import datetime, timedelta
 
 import argon2
 import jwt
-from fastapi import Cookie, Depends, FastAPI, HTTPException
+from fastapi import Cookie, Depends, FastAPI, HTTPException, Request
+from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from rich.logging import RichHandler
+
+from . import core
 
 log = logging.getLogger(__name__)
-log.addHandler(RichHandler())
-log.setLevel(logging.INFO)
-api = FastAPI()
-
 hasher = argon2.PasswordHasher()
-USERNAME = "username"
-PASSWORD_HASH = "password_hash"
-
-JWT_SECRET = "supersecretvalue"
-JWT_EXPIRE = timedelta(days=1)
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login", auto_error=False)
-
-
-class LoginRequired(Exception):
-    pass
 
 
 def make_token(data: dict[str, str]):
     return jwt.encode(
-        data | {"exp": round((datetime.now() + JWT_EXPIRE).timestamp())},
-        JWT_SECRET,
+        data | {"exp": round((datetime.now() + core.JWT_EXPIRE).timestamp())},
+        core.JWT_SECRET,
         algorithm="HS256",
     )
 
 
 def check_token(token: str) -> bool:
     try:
-        return jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-    except (jwt.DecodeError, jwt.ExpiredSignatureError):
+        return jwt.decode(token, core.JWT_SECRET, algorithms=["HS256"])
+    except jwt.DecodeError:
+        log.info(f'Invalid token.')
+        return None
+    except jwt.ExpiredSignatureError:
+        log.info(f'Expired token.')
         return None
 
 
@@ -50,12 +42,16 @@ class LoginRequest:
         self.token = self.tokenize()
 
     def authenticate(self) -> bool:
-        return self.username == USERNAME and hasher.verify(PASSWORD_HASH, self.password)
+        return self.username == core.USERNAME and hasher.verify(core.PASSWORD_HASH, self.password)
 
     def tokenize(self) -> str | None:
         if self.authenticated:
             return make_token({"id": self.username})
         return None
+
+
+class LoginRequired(Exception):
+    pass
 
 
 class TokenBearer:
@@ -72,10 +68,20 @@ class TokenBearer:
         header: str | None = Depends(oauth2_scheme),
         cookie: str | None = Cookie(default=None, alias="Authorization"),
     ):
-        token = (
-            cookie if check_token(cookie) else (header if check_token(header) else None)
-        )
+        token = cookie if check_token(cookie) else (header if check_token(header) else None)
         if not bool(token):
             if self.redirect:
                 raise LoginRequired()
             raise self.exc
+
+
+@core.api.post("/login")
+async def authenticate(request: LoginRequest = Depends()):
+    if request.authenticated:
+        return {"access_token": request.token, "token_type": "bearer"}
+    raise HTTPException(400, "Invalid credentials.")
+
+
+@core.api.exception_handler(LoginRequired)
+async def login_redirect(request: Request, exc: LoginRequired):
+    return RedirectResponse(url="/login")

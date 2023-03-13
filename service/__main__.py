@@ -1,6 +1,6 @@
 import sys
 
-from . import core
+from . import core, livecontrol, requestdb, staticfiles  # noqa: F401
 
 if __name__ == "__main__":
     args = sys.argv

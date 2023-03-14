@@ -18,7 +18,7 @@
   h1,
   h2,
   ul {
-    margin: 10px;
+    margin: 0.3em;
     padding: 0;
   }
 
@@ -44,6 +44,10 @@
     list-style: none;
     display: flex;
     flex-direction: column;
+  }
+
+  li {
+    margin: 0.3em 0 0.3em 0;
   }
 
 

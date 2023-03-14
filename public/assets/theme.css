@@ -1,0 +1,11 @@
+body {
+  --background: #141414;
+  --background-accent: #4290d1e0;
+  --background-highlight: #00384185;
+  --content: #ffffff;
+  --content-accent: #e8ff00;
+  --content-highlight: #00fbe4;
+  --content-highlight-alt: #ff9800;
+  --content-division: #e91e63;
+  --border: #9e9e9e;
+}

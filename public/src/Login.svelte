@@ -63,8 +63,8 @@
   button {
 	appearance: none;
 	background-color: transparent;
-	color: white;
-	border: 2px solid gray;
+	color: var(--content);
+	border: 2px solid var(--border);
 	margin: 0.5rem;
 	padding: 0.5rem;
 	box-sizing: border-box;
@@ -74,8 +74,8 @@
   input {
 	appearance: none;
 	background-color: transparent;
-	border: 2px solid gray;
-	color: white;
+	border: 2px solid var(--border);
+	color: var(--content);
 	padding: 0.5rem;
 	margin: 0.5rem;
 	width: 100%;
@@ -83,7 +83,7 @@
   }
 
   input::placeholder {
-	color: lightgray;
+	color: var(--content);
 	opacity: 1;
   }
 </style>

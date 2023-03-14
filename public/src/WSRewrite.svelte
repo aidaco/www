@@ -1,8 +1,7 @@
 <script>
-  import { onMount, onDestroy } from "svelte";
-  const url = "/api/live";
-  let activated = false;
-  let content = "";
+  let url = '/api/live'
+  let activated = false
+  let content = ''
 
   function makeWebSocket(path) {
     var protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://'
@@ -16,6 +15,9 @@
     var match = s.match("^([A-Za-z]*)( (.*))?");
     return [match[1], match[3]];
   };
+
+  import { onMount, onDestroy } from "svelte";
+
   onMount(async () => {
     var ws = makeWebSocket(url);
     ws.onerror = (event) => {

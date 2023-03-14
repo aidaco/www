@@ -1,0 +1,15 @@
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-image: radial-gradient(var(--background-accent), var(--background));
+  color: var(--content);
+  font-family: monospace;
+  font-size: 18px;
+}
+

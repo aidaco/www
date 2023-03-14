@@ -7,8 +7,9 @@ body {
 }
 
 body {
-  background: #000000;
-  color: #ffffff;
+  background-image: radial-gradient(var(--background-accent), var(--background));
+  color: var(--content);
   font-family: monospace;
   font-size: 18px;
 }
+

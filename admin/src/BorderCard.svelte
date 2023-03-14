@@ -8,7 +8,6 @@
     min-height: 30vh;
     padding: 5vw;
     border: gray solid;
-    border-radius: 5%;
     border-width: 0.25rem;
     display: flex;
     justify-content: space-evenly;

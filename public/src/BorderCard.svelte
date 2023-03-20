@@ -19,9 +19,10 @@
 
   .card {
     background: var(--background-highlight);
-    min-width: 40vw;
+    /** min-width: 40vw;
     min-height: 30vh;
-    padding: 5vw;
+    max-width: 80vw;
+    max-height: 80vh; **/
     border: var(--border) solid 0.1em;
     display: flex;
     justify-content: space-evenly;
@@ -30,9 +31,15 @@
 
   .responsive-orientation {
     width: 100%;
+    height: 100%;
+    max-width: 80vw;
     display: flex;
+    flex-direction: row;
     justify-content: center;
     align-items: center;
+    margin: 2rem;
+    padding: 0;
+    gap: 1rem
   }
 
   @media screen and (max-width: 700px) {

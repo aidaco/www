@@ -27,12 +27,13 @@ def _resolve_static_path(
 
 
 @api.get("/admin")
-async def base_admin():
-    return await protected_file("")
+async def base_admin(auth=Depends(auth.TokenBearer(redirect=True))):
+    return await protected_file("", auth)
 
 
 @api.get("/admin/{path:path}")
 async def protected_file(path: str, auth=Depends(auth.TokenBearer(redirect=True))):
+
     path = _resolve_static_path(ADMIN_ROOT, path)
     return FileResponse(path)
 

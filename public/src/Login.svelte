@@ -25,7 +25,7 @@
     var respData = await resp.json();
     console.log(`Success ${JSON.stringify(respData)}`);
     document.cookie = `Authorization=${respData.access_token};secure;max-age=86400;`;
-    location.href = '/madness'
+    location.href = '/admin'
   }
 </script>
 

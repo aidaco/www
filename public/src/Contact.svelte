@@ -3,19 +3,29 @@
 </script>
 
 <BorderCard>
-  <div class="center-title">
-    <h1>Aidan Courtney</h1>
-    <h2>Contact Info</h2>
+  <div class="container">
+    <div class="center-title">
+      <h1>Aidan Courtney</h1>
+      <h2>Contact Info</h2>
+    </div>
+    <ul>
+      <li><em>phone</em><b>::</b><a class="link" href="sms:+16317048992">631-704-8994</a></li>
+      <li><em>email</em><b>::</b><a class="link" href="mailto:aidanfc97@gmail.com">aidanfc97@gmail.com</a></li>
+      <li><em>linkedin</em><b>::</b><a class="link" href="https://www.linkedin.com/in/aidan-courtney">aidan-courtney</a></li>
+    </ul>
+    <a class="home" href="/">⌂</a>
   </div>
-  <ul>
-    <li><em>phone</em><b>: </b><a class="link" href="sms:+16317048992">631-704-8994</a></li>
-    <li><em>email</em><b>: </b><a class="link" href="mailto:aidanfc97@gmail.com">aidanfc97@gmail.com</a></li>
-    <li><em>linkedin</em><b>: </b><a class="link" href="https://www.linkedin.com/in/aidan-courtney">aidan-courtney</a></li>
-  </ul>
-  <a class="home" href="/">⌂</a>
 </BorderCard>
 
 <style>
+  .container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+  }
+
   .center-title {
     text-align: center;
   }

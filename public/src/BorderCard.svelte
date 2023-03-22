@@ -1,8 +1,6 @@
 <main>
   <div class='card' id='rewrite'>
-    <div class='responsive-orientation'>
-      <slot/>
-    </div>
+    <slot/>
   </div>
 </main>
 
@@ -19,32 +17,16 @@
 
   .card {
     background: var(--background-highlight);
-    /** min-width: 40vw;
-    min-height: 30vh;
+    min-width: 40vw;
+    min-height: 40vh;
     max-width: 80vw;
-    max-height: 80vh; **/
+    max-height: 80vh;
     border: var(--border) solid 0.1em;
     display: flex;
-    justify-content: space-evenly;
-    align-items: center;
-  }
-
-  .responsive-orientation {
-    width: 100%;
-    height: 100%;
-    max-width: 80vw;
-    display: flex;
-    flex-direction: row;
     justify-content: center;
     align-items: center;
-    margin: 2rem;
-    padding: 0;
-    gap: 1rem
-  }
-
-  @media screen and (max-width: 700px) {
-    .responsive-orientation {
-      flex-direction: column;
-    }
+    margin: 0;
+    padding: 2rem;
+    gap: 1rem;
   }
 </style>

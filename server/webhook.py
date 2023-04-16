@@ -37,17 +37,19 @@ def rebuild_pyz():
     subprocess.run(
         f"git clone --branch main --single-branch https://github.com/aidaco/www {git_dir}",
         shell=True,
+        capture_output=True,
+        check=True
     )
     with contextlib.chdir(git_dir):
-        subprocess.run("./dev.py buildpyz", shell=True, check=True)
+        subprocess.run("./dev.py buildpyz", shell=True, capture_output=True, check=True)
     (git_dir / "aidan.software.pyz").replace(Path.cwd() / "aidan.software.pyz")
     shutil.rmtree(git_dir)
     os.execv(sys.executable, ["python", *sys.argv])
 
 
 def rebuild_static():
-    subprocess.run("git pull", shell=True)
-    subprocess.run("./dev.py buildstatic", shell=True)
+    subprocess.run("git pull", shell=True, check=True, capture_output=True)
+    subprocess.run("./dev.py buildstatic", shell=True, check=True, capture_output=True)
     argv = ["python", "-m", "server", *sys.argv[1:]]
     os.execv(sys.executable, argv)
 
@@ -55,6 +57,7 @@ def rebuild_static():
 async def rebuild():
     global rebuild_task
     # await cleanup()
+    core.log.info(f'Push to main received. Starting rebuild...')
     if core.config.zipapp:
         rebuild_pyz()
     else:

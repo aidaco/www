@@ -77,7 +77,7 @@ async def rebuild():
 def verify_signature(body, signature):
     if not signature:
         raise HTTPException(status_code=403, detail="Missing payload signature.")
-    expected = hmac.new(
+    expected = 'sha256='+hmac.new(
         core.config.admin.rebuild_secret.encode("utf-8"),
         msg=body,
         digestmod=hashlib.sha256,

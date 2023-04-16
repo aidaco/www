@@ -49,8 +49,9 @@ def rebuild_pyz():
 
 def rebuild_static():
     subprocess.run("git pull", shell=True, check=True, capture_output=True)
-    subprocess.run("./dev.py buildstatic", shell=True, check=True, capture_output=True)
-    argv = ["python", "-m", "server", *sys.argv[1:]]
+    subprocess.run(f"{Path.cwd()/'dev.py'} buildstatic", shell=True, check=True, capture_output=True)
+    print(sys.executable)
+    argv = [sys.executable, "-m", "server", *sys.argv[1:]]
     os.execv(sys.executable, argv)
 
 

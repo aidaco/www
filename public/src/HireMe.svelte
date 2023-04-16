@@ -1,6 +1,6 @@
 <script>
   import BorderCard from "./BorderCard.svelte"
-  import resumeUrl from "/assets/Aidan Courtney - Resume.pdf"
+  const resumeUrl = new URL("/assets/Aidan Courtney - Resume.pdf", import.meta.url).href
 </script>
 
 <BorderCard>

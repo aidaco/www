@@ -10,6 +10,7 @@ from pathlib import Path
 class Admin:
     username: str
     password_hash: str
+    rebuild_secret: str
 
 
 @dataclass

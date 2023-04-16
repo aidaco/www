@@ -1,13 +1,16 @@
 import asyncio
 import contextlib
+import hashlib
+import hmac
 import os
 import shutil
 import subprocess
 import sys
+from json import JSONDecodeError
 from pathlib import Path
 
 import psutil
-from fastapi import BackgroundTasks, Header, Request
+from fastapi import BackgroundTasks, Header, HTTPException, Request
 
 from . import core
 from .core import api
@@ -38,7 +41,7 @@ def rebuild_pyz():
         f"git clone --branch main --single-branch https://github.com/aidaco/www {git_dir}",
         shell=True,
         capture_output=True,
-        check=True
+        check=True,
     )
     with contextlib.chdir(git_dir):
         subprocess.run("./dev.py buildpyz", shell=True, capture_output=True, check=True)
@@ -49,25 +52,47 @@ def rebuild_pyz():
 
 def rebuild_static():
     subprocess.run("git pull", shell=True, check=True, capture_output=True)
-    subprocess.run(f"{Path.cwd()/'dev.py'} buildstatic", shell=True, check=True, capture_output=True)
+    subprocess.run(
+        f"{Path.cwd()/'dev.py'} buildstatic",
+        shell=True,
+        check=True,
+        capture_output=True,
+    )
     print(sys.executable)
-    argv = [sys.executable, "-m", "server", *sys.argv[1:]]
-    os.execv(sys.executable, argv)
+    args = (sys.executable, (sys.executable, "-m", "server", *sys.argv[1:]))
+    print(f"os.execv{args}")
+    os.execv(*args)
 
 
 async def rebuild():
     global rebuild_task
     # await cleanup()
-    core.log.info(f'Push to main received. Starting rebuild...')
+    core.log.info("Push received. Starting rebuild...")
     if core.config.zipapp:
         rebuild_pyz()
     else:
         rebuild_static()
 
 
+def verify_github_secret(body, signature):
+    if not signature:
+        raise HTTPException(status_code=403, detail="Missing payload signature.")
+    expected = hmac.new(
+        core.config.admin.rebuild_secret.encode("utf-8"),
+        msg=body,
+        digestmod=hashlib.sha256,
+    ).hexdigest()
+    if not hmac.compare_digest(expected, signature):
+        raise HTTPException(status_code=403, detail="Failed to verify signature.")
+
+
 @api.post("/webhook/{appname}")
 async def receive_webhook(
-        request: Request, appname: str, bg_tasks: BackgroundTasks, x_github_event: str = Header(...)
+    request: Request,
+    appname: str,
+    bg_tasks: BackgroundTasks,
+    x_github_event: str = Header(...),
+    x_hub_signature_256: str = Header(...),
 ):
     global rebuild_task
     match x_github_event:
@@ -77,10 +102,14 @@ async def receive_webhook(
             pass
         case _:
             return {"message": "Unknown: no action will be taken."}
-    #body = await request.json()
-    #branch = body.get("ref", None)
-    #main = f"refs/heads/{body['repository']['default_branch']}"
-    #if branch is None or branch != main:
-    #    return {"message": "Not on default branch: no action will be taken."}
+    try:
+        body = await request.json()
+    except JSONDecodeError:
+        raise HTTPException(status_code=403, detail="Invalid request body.")
+    branch = body.get("ref", None)
+    main = f"refs/heads/{body['repository']['default_branch']}"
+    if branch is None or branch != main:
+        return {"message": "Not on default branch: no action will be taken."}
+    verify_github_secret(body, x_hub_signature_256)
     bg_tasks.add_task(rebuild)
     return {"message": "Push received, started upgrade."}

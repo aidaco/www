@@ -13,13 +13,11 @@ from . import core
 from .core import api
 
 
-async def cancel_tasks():
-    tasks = (t for t in asyncio.all_tasks() if t is not asyncio.current_task())
+async def cleanup():
+    tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
     [t.cancel() for t in tasks]
     await asyncio.gather(*tasks)
 
-
-async def close_files():
     pid = os.getpid()
     parent = psutil.Process(pid)
     for ch in parent.children(recursive=True):
@@ -49,6 +47,14 @@ async def rebuild_static():
 
 
 rebuild_task = None
+async def rebuild():
+    global rebuild_task
+    await asyncio.sleep(0.5)
+    await cleanup()
+    if core.config.zipapp:
+        rebuild_task = asyncio.create_task(rebuild_pyz())
+    else:
+        rebuild_task = asyncio.create_task(rebuild_static())
 
 
 @api.post("/webhook/{appname}")
@@ -68,10 +74,5 @@ async def receive_webhook(
     main = f"refs/heads/{body['repository']['default_branch']}"
     if branch is None or branch != main:
         return {"message": "Not on default branch: no action will be taken."}
-    await cancel_tasks()
-    await close_files()
-    if core.config.zipapp:
-        rebuild_task = asyncio.create_task(rebuild_pyz())
-    else:
-        rebuild_task = asyncio.create_task(rebuild_static())
+    await rebuild()
     return {"message": "Push received, started upgrade."}

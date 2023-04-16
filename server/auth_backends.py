@@ -19,8 +19,8 @@ class Argon2CFFI:
 
     def check(self, text: str, hash: str) -> bool:
         try:
-            return self.hasher.verify(text, hash)
-        except argon2.exceptions.VerificationError:
+            return self.hasher.verify(hash, text)
+        except (argon2.exceptions.VerificationError, argon2.exceptions.InvalidHash):
             return False
 
 

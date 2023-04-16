@@ -14,6 +14,8 @@ from .core import api
 
 
 async def cleanup():
+    return
+    # TODO: throws lots of CancelledErrors
     tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
     [t.cancel() for t in tasks]
     await asyncio.gather(*tasks)
@@ -47,6 +49,8 @@ async def rebuild_static():
 
 
 rebuild_task = None
+
+
 async def rebuild():
     global rebuild_task
     await asyncio.sleep(0.5)

@@ -82,15 +82,20 @@ class Loader(Protocol):
         ...
 
 
-public_loader: Loader
-protected_loader: Loader
+loaders: dict[str, Loader] = {}
 
-if core.config.zipapp:
-    public_loader = PyzPathLoader("public")
-    protected_loader = PyzPathLoader("protected")
-else:
-    public_loader = PathLoader("public")
-    protected_loader = PathLoader("protected")
+
+def get_loader(group: str):
+    global loaders
+    try:
+        return loaders[group]
+    except KeyError:
+        loader: Loader
+        if core.config.zipapp:
+            loader = loaders[group] = PyzPathLoader(group)
+        else:
+            loader = loaders[group] = PathLoader(group)
+        return loader
 
 
 @api.get("/admin")
@@ -100,9 +105,9 @@ async def base_admin(auth=Depends(auth.TokenBearer(redirect=True))):
 
 @api.get("/admin/{path:path}")
 async def protected_file(path: str, auth=Depends(auth.TokenBearer(redirect=True))):
-    return protected_loader.response(path)
+    return get_loader("protected").response(path)
 
 
 @api.get("/{path:path}")
 async def public_file(path: str):
-    return public_loader.response(path)
+    return get_loader("public").response(path)

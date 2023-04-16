@@ -50,6 +50,7 @@ async def rebuild_static():
 
 rebuild_task = None
 
+
 @api.post("/webhook/{appname}")
 async def receive_webhook(
     request: Request, appname: str, x_github_event: str = Header(...)

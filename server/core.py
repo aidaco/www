@@ -11,10 +11,12 @@ log = logging.getLogger(__name__)
 log.addHandler(RichHandler())
 log.setLevel(logging.INFO)
 
-config = Config.locate("aidan.software")
+config: Config
 manager = WSManager()
 api = FastAPI()
 
 
 def start():
+    global config
+    config = Config.locate("aidan.software")
     uvicorn.run(api, host="0.0.0.0", port=8000, log_level=logging.INFO)

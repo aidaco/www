@@ -16,6 +16,7 @@ argon2-cffi = "*"
 python-multipart = "*"
 aiosqlite = "*"
 websockets = "*"
+types-psutil = "*"
 
 [tool.poetry.group.dev.dependencies]
 black = "*"

@@ -2,7 +2,11 @@ from pathlib import Path
 
 from typer import Typer
 
-from server import livecontrol  # noqa: F401
+from server import auth  # noqa
+from server import livecontrol  # noqa
+from server import requestdb  # noqa
+from server import staticfiles  # noqa
+from server import webhook  # noqa
 from server import auth_backends, config, core
 
 cli = Typer()

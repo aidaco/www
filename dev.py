@@ -59,6 +59,7 @@ def buildstatic():
 
 @cli.command()
 def buildpyz():
+    buildstatic()
     build_dir.mkdir(exist_ok=True)
     shutil.copytree(root_dir / "server", build_dir / "server")
     shutil.copytree(dist_dir / "protected", build_dir / "protected")

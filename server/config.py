@@ -45,7 +45,8 @@ class Config:
         dirs = [Path.cwd(), Path.home(), Path.home() / ".config"]
         for d in dirs:
             for f in d.glob(f"{name}.*"):
-                return Config.read(f)
+                if f.suffix in {".toml", ".json"}:
+                    return Config.read(f)
         raise Exception("No config file found")
 
 

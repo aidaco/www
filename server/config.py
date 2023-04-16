@@ -58,7 +58,11 @@ def _dataclass_toml_template(dcls):
             yield f"[ {field.name} ]"
             yield from _dataclass_toml_template(field.type)
         else:
-            value = repr(field.default) if field.default is not _MISSING_TYPE else "''"
+            value = (
+                repr(field.default)
+                if not isinstance(field.default, _MISSING_TYPE)
+                else "''"
+            )
             yield f"{field.name} = {value}"
 
 
@@ -66,7 +70,7 @@ def _dataclass_fromdict(dcls, data):
     kwargs = {}
     for field in fields(dcls):
         value = data.get(field.name, field.default)
-        if value is _MISSING_TYPE:
+        if isinstance(value, _MISSING_TYPE):
             raise ValueError(f"Required field not found: {field.name}")
         if is_dataclass(field.type):
             kwargs[field.name] = _dataclass_fromdict(field.type, value)

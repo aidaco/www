@@ -1,4 +1,4 @@
-#!/usr/bin/env -S python -B
+#!/usr/bin/env -S python3.11 -B
 
 import subprocess
 import contextlib

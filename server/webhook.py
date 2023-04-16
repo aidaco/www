@@ -30,10 +30,10 @@ async def close_files():
 def rebuildpyz():
     git_dir = Path.cwd() / ".git.aidan.software"
     subprocess.run(
-        f"git clone --depth 1 https://github.com/aidaco/www {git_dir}", shell=True
+        f"git clone --branch github-webhook --single-branch https://github.com/aidaco/www {git_dir}",
+        shell=True,
     )
     with contextlib.chdir(git_dir):
-        subprocess.run("git checkout github-webhook", shell=True)
         subprocess.run("./dev.py buildpyz", shell=True, check=True)
     (git_dir / "aidan.software.pyz").replace(Path.cwd() / "aidan.software.pyz")
     shutil.rmtree(git_dir)

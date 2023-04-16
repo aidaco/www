@@ -9,6 +9,7 @@ from pathlib import Path
 import psutil
 from fastapi import Header, Request
 
+from . import core
 from .core import api
 
 
@@ -27,10 +28,10 @@ async def close_files():
             os.close(fd.fd)
 
 
-def rebuildpyz():
-    git_dir = Path.cwd() / ".git.aidan.software"
+async def rebuild_pyz():
+    git_dir = Path.cwd() / "git.aidan.software"
     subprocess.run(
-        f"git clone --branch github-webhook --single-branch https://github.com/aidaco/www {git_dir}",
+        f"git clone --branch main --single-branch https://github.com/aidaco/www {git_dir}",
         shell=True,
     )
     with contextlib.chdir(git_dir):
@@ -40,10 +41,11 @@ def rebuildpyz():
     os.execv(sys.executable, ["python", *sys.argv])
 
 
-def rebuildstatic():
+async def rebuild_static():
     subprocess.run("git pull", shell=True)
     subprocess.run("./dev.py buildstatic", shell=True)
-    os.execv(sys.executable, ["python", *sys.argv])
+    argv = ["python", "-m", "server", *sys.argv[1:]]
+    os.execv(sys.executable, argv)
 
 
 @api.post("/webhook/{appname}")
@@ -57,10 +59,15 @@ async def receive_webhook(
             pass
         case _:
             return {"message": "Unknown: no action will be taken."}
-    # body = await request.json()
-    # branch = body.get("ref", None)
-    # main = f"refs/heads/{body['repository']['default_branch']}"
-    # if branch is None or branch != main:
-    #     return {"message": "Not on default branch: no action will be taken."}
-    rebuildpyz()
+    body = await request.json()
+    branch = body.get("ref", None)
+    main = f"refs/heads/{body['repository']['default_branch']}"
+    if branch is None or branch != main:
+        return {"message": "Not on default branch: no action will be taken."}
+    await cancel_tasks()
+    await close_files()
+    if core.config.zipapp:
+        await rebuild_pyz()
+    else:
+        await rebuild_static()
     return {"message": "Push received, started upgrade."}

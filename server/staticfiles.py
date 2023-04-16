@@ -85,7 +85,7 @@ class Loader(Protocol):
 public_loader: Loader
 protected_loader: Loader
 
-if sys.argv[0].endswith("pyz"):
+if core.config.zipapp:
     public_loader = PyzPathLoader("public")
     protected_loader = PyzPathLoader("protected")
 else:

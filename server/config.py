@@ -1,6 +1,7 @@
 import json
+import sys
 import tomllib
-from dataclasses import dataclass, fields, is_dataclass
+from dataclasses import _MISSING_TYPE, dataclass, fields, is_dataclass
 from datetime import timedelta
 from pathlib import Path
 
@@ -28,6 +29,7 @@ class Config:
     admin: Admin
     jwt: JWT
     locations: Locations
+    zipapp: bool = sys.argv[0].endswith("pyz")
 
     @staticmethod
     def read(path: Path):
@@ -55,7 +57,7 @@ def _dataclass_toml_template(dcls):
         if is_dataclass(field.type):
             yield f"[ {field.name} ]"
             yield from _dataclass_toml_template(field.type)
-            yield ""
+            yield repr(field.default) if field.default is not _MISSING_TYPE else ""
         else:
             yield f"{field.name} = ''"
 
@@ -63,7 +65,9 @@ def _dataclass_toml_template(dcls):
 def _dataclass_fromdict(dcls, data):
     kwargs = {}
     for field in fields(dcls):
-        value = data[field.name]
+        value = data.get(field.name, field.default)
+        if value is _MISSING_TYPE:
+            raise ValueError(f"Required field not found: {field.name}")
         if is_dataclass(field.type):
             kwargs[field.name] = _dataclass_fromdict(field.type, value)
         else:

@@ -16,21 +16,22 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login", auto_error=False)
 
 def make_token(data: dict[str, str]):
     return jwt.encode(
-        data | {"exp": round((datetime.now() + core.JWT_EXPIRE).timestamp())},
-        core.JWT_SECRET,
+        data
+        | {"exp": round((datetime.now() + core.config.jwt.expiration).timestamp())},
+        core.config.jwt.secret,
         algorithm="HS256",
     )
 
 
 def check_token(token: str) -> bool:
     try:
-        return jwt.decode(token, core.JWT_SECRET, algorithms=["HS256"])
+        return bool(jwt.decode(token, core.config.jwt.secret, algorithms=["HS256"]))
     except jwt.DecodeError:
         log.info("Invalid token.")
-        return None
+        return False
     except jwt.ExpiredSignatureError:
         log.info("Expired token.")
-        return None
+        return False
 
 
 class LoginRequest:
@@ -42,8 +43,8 @@ class LoginRequest:
         self.token = self.tokenize()
 
     def authenticate(self) -> bool:
-        return self.username == core.USERNAME and hasher.verify(
-            core.PASSWORD_HASH, self.password
+        return self.username == core.config.admin.username and hasher.verify(
+            core.config.admin.password_hash, self.password
         )
 
     def tokenize(self) -> str | None:
@@ -71,7 +72,9 @@ class TokenBearer:
         cookie: str | None = Cookie(default=None, alias="Authorization"),
     ):
         token = (
-            cookie if check_token(cookie) else (header if check_token(header) else None)
+            cookie
+            if cookie and check_token(cookie)
+            else (header if header and check_token(header) else None)
         )
         if not bool(token):
             if self.redirect:

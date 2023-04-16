@@ -1,18 +1,17 @@
 import time
-from pathlib import Path
 
 import aiosqlite
 
 from .core import api
+from . import core
 
-DBPATH = Path.cwd() / "requests.sqlite3"
-db = None
+db: aiosqlite.Connection
 
 
 @api.on_event("startup")
 async def connectdb():
     global db
-    db = await aiosqlite.connect(DBPATH)
+    db = await aiosqlite.connect(core.config.locations.database)
     await db.execute(
         """CREATE TABLE IF NOT EXISTS requests(
          count INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,7 +32,7 @@ async def connectdb():
 async def closedb():
     global db
     await db.close()
-    db = None
+    del db
 
 
 async def _insert(request, received, elapsed):

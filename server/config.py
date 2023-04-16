@@ -57,9 +57,9 @@ def _dataclass_toml_template(dcls):
         if is_dataclass(field.type):
             yield f"[ {field.name} ]"
             yield from _dataclass_toml_template(field.type)
-            yield repr(field.default) if field.default is not _MISSING_TYPE else ""
         else:
-            yield f"{field.name} = ''"
+            value = repr(field.default) if field.default is not _MISSING_TYPE else "''"
+            yield f"{field.name} = {value}"
 
 
 def _dataclass_fromdict(dcls, data):

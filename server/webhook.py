@@ -48,10 +48,13 @@ async def rebuild_static():
     os.execv(sys.executable, argv)
 
 
+rebuild_task = None
+
 @api.post("/webhook/{appname}")
 async def receive_webhook(
     request: Request, appname: str, x_github_event: str = Header(...)
 ):
+    global rebuild_task
     match x_github_event:
         case "ping":
             return {"message": "pong"}
@@ -67,7 +70,7 @@ async def receive_webhook(
     await cancel_tasks()
     await close_files()
     if core.config.zipapp:
-        await rebuild_pyz()
+        rebuild_task = asyncio.create_task(rebuild_pyz())
     else:
-        await rebuild_static()
+        rebuild_task = asyncio.create_task(rebuild_static())
     return {"message": "Push received, started upgrade."}

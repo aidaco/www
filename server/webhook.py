@@ -7,28 +7,32 @@ import sys
 from pathlib import Path
 
 import psutil
-from fastapi import Header, Request
+from fastapi import BackgroundTasks, Header, Request
 
 from . import core
 from .core import api
 
 
 async def cleanup():
-    return
-    # TODO: throws lots of CancelledErrors
     tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
     [t.cancel() for t in tasks]
-    await asyncio.gather(*tasks)
+    try:
+        await asyncio.gather(*tasks)
+    except asyncio.CancelledError:
+        pass
 
     pid = os.getpid()
     parent = psutil.Process(pid)
     for ch in parent.children(recursive=True):
         for fd in ch.open_files() + ch.connections():
-            os.fsync(fd.fd)
-            os.close(fd.fd)
+            try:
+                os.fsync(fd.fd)
+                os.close(fd.fd)
+            except OSError:
+                pass
 
 
-async def rebuild_pyz():
+def rebuild_pyz():
     git_dir = Path.cwd() / "git.aidan.software"
     subprocess.run(
         f"git clone --branch main --single-branch https://github.com/aidaco/www {git_dir}",
@@ -41,29 +45,25 @@ async def rebuild_pyz():
     os.execv(sys.executable, ["python", *sys.argv])
 
 
-async def rebuild_static():
+def rebuild_static():
     subprocess.run("git pull", shell=True)
     subprocess.run("./dev.py buildstatic", shell=True)
     argv = ["python", "-m", "server", *sys.argv[1:]]
     os.execv(sys.executable, argv)
 
 
-rebuild_task = None
-
-
 async def rebuild():
     global rebuild_task
-    await asyncio.sleep(0.5)
-    await cleanup()
+    # await cleanup()
     if core.config.zipapp:
-        rebuild_task = asyncio.create_task(rebuild_pyz())
+        rebuild_pyz()
     else:
-        rebuild_task = asyncio.create_task(rebuild_static())
+        rebuild_static()
 
 
 @api.post("/webhook/{appname}")
 async def receive_webhook(
-    request: Request, appname: str, x_github_event: str = Header(...)
+        request: Request, appname: str, bg_tasks: BackgroundTasks, x_github_event: str = Header(...)
 ):
     global rebuild_task
     match x_github_event:
@@ -73,10 +73,10 @@ async def receive_webhook(
             pass
         case _:
             return {"message": "Unknown: no action will be taken."}
-    body = await request.json()
-    branch = body.get("ref", None)
-    main = f"refs/heads/{body['repository']['default_branch']}"
-    if branch is None or branch != main:
-        return {"message": "Not on default branch: no action will be taken."}
-    await rebuild()
+    #body = await request.json()
+    #branch = body.get("ref", None)
+    #main = f"refs/heads/{body['repository']['default_branch']}"
+    #if branch is None or branch != main:
+    #    return {"message": "Not on default branch: no action will be taken."}
+    bg_tasks.add_task(rebuild)
     return {"message": "Push received, started upgrade."}

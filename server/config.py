@@ -16,13 +16,13 @@ class Admin:
 @dataclass
 class JWT:
     secret: str
-    expiration: timedelta
+    expiration: timedelta = timedelta(days=30)
 
 
 @dataclass
 class Locations:
-    static: Path
-    database: Path
+    static: Path = Path("dist")
+    database: Path = Path("aidan.software.sqlite3")
 
 
 @dataclass

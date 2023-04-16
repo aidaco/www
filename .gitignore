@@ -3,3 +3,6 @@
 **/dist
 **/__pycache__
 **/.vscode
+*.pyz
+*.sqlite3
+aidan.software.toml

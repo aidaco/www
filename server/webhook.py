@@ -2,11 +2,11 @@ import asyncio
 import contextlib
 import hashlib
 import hmac
+import json
 import os
 import shutil
 import subprocess
 import sys
-from json import JSONDecodeError
 from pathlib import Path
 
 import psutil
@@ -74,7 +74,7 @@ async def rebuild():
         rebuild_static()
 
 
-def verify_github_secret(body, signature):
+def verify_signature(body, signature):
     if not signature:
         raise HTTPException(status_code=403, detail="Missing payload signature.")
     expected = hmac.new(
@@ -84,6 +84,7 @@ def verify_github_secret(body, signature):
     ).hexdigest()
     if not hmac.compare_digest(expected, signature):
         raise HTTPException(status_code=403, detail="Failed to verify signature.")
+    return body.decode("utf-8")
 
 
 @api.post("/webhook/{appname}")
@@ -103,13 +104,12 @@ async def receive_webhook(
         case _:
             return {"message": "Unknown: no action will be taken."}
     try:
-        body = await request.json()
-    except JSONDecodeError:
+        body = json.loads(verify_signature(await request.body(), x_hub_signature_256))
+    except json.JSONDecodeError:
         raise HTTPException(status_code=403, detail="Invalid request body.")
     branch = body.get("ref", None)
     main = f"refs/heads/{body['repository']['default_branch']}"
     if branch is None or branch != main:
         return {"message": "Not on default branch: no action will be taken."}
-    verify_github_secret(body, x_hub_signature_256)
     bg_tasks.add_task(rebuild)
     return {"message": "Push received, started upgrade."}

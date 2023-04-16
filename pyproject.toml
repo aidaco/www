@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "aidan-software"
+version = "0.1.0"
+description = "Personal website."
+authors = ["Aidan Courtney <aidanfc97@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "*"
+typer = "*"
+uvicorn = "*"
+rich = "*"
+pyjwt = "*"
+argon2-cffi = "*"
+python-multipart = "*"
+aiosqlite = "*"
+websockets = "*"
+
+[tool.poetry.group.dev.dependencies]
+black = "*"
+isort = "*"
+ruff = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

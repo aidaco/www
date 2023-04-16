@@ -7,11 +7,11 @@ log = logging.getLogger(__name__)
 
 
 class WSManager:
-    def __init__(self):
+    def __init__(self) -> None:
         self.connections: dict[str, WebSocket] = {}
         self.state: dict[str, tuple[bool, str]] = {}
 
-    async def connect(self, websocket: WebSocket):
+    async def connect(self, websocket: WebSocket) -> str | None:
         await websocket.accept()
         uid = str(uuid4())
         try:

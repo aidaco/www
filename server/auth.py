@@ -1,16 +1,15 @@
 import logging
 from datetime import datetime
 
-import argon2
 import jwt
 from fastapi import Cookie, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
-from . import core
+from . import auth_backends, core
 
 log = logging.getLogger(__name__)
-hasher = argon2.PasswordHasher()
+hasher = auth_backends.hasher()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login", auto_error=False)
 
 
@@ -43,8 +42,8 @@ class LoginRequest:
         self.token = self.tokenize()
 
     def authenticate(self) -> bool:
-        return self.username == core.config.admin.username and hasher.verify(
-            core.config.admin.password_hash, self.password
+        return self.username == core.config.admin.username and hasher.check(
+            self.password, core.config.admin.password_hash
         )
 
     def tokenize(self) -> str | None:

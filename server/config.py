@@ -1,8 +1,8 @@
+import json
+import tomllib
 from dataclasses import dataclass, fields, is_dataclass
 from datetime import timedelta
 from pathlib import Path
-import tomllib
-import json
 
 
 @dataclass
@@ -19,8 +19,7 @@ class JWT:
 
 @dataclass
 class Locations:
-    public: Path
-    protected: Path
+    static: Path
     database: Path
 
 
@@ -38,7 +37,7 @@ class Config:
             case ".json":
                 load = json.loads
             case _:
-                raise ValueError(f"Config file must be TOML or JSON.")
+                raise ValueError("Config file must be TOML or JSON.")
         return _dataclass_fromdict(Config, load(path.read_text()))
 
     @staticmethod

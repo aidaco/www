@@ -2,8 +2,8 @@ import time
 
 import aiosqlite
 
-from .core import api
 from . import core
+from .core import api
 
 db: aiosqlite.Connection
 

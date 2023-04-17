@@ -1,13 +1,31 @@
 import binascii
 import hashlib
+import logging
 import os
+from datetime import datetime, timedelta
+
+log = logging.getLogger(__name__)
+
+
+import jwt  # PyJWT: https://github.com/jpadilla/pyjwt
 
 try:
-    import argon2
+    import argon2  # argon2-cffi: https://github.com/hynek/argon2-cffi
 
     USE_HASHLIB = False
 except ImportError:
     USE_HASHLIB = True
+
+
+def hasher():
+    if USE_HASHLIB:
+        return HashlibSHA512()
+    else:
+        return Argon2CFFI()
+
+
+def tokenizer():
+    return PyJWT()
 
 
 class Argon2CFFI:
@@ -41,8 +59,20 @@ class HashlibSHA512:
         return pwdhash == stored_password
 
 
-def hasher():
-    if USE_HASHLIB:
-        return HashlibSHA512()
-    else:
-        return Argon2CFFI()
+class PyJWT:
+    def tokenize(self, data: dict[str, str], secret: str, ttl: timedelta):
+        return jwt.encode(
+            data | {"exp": round((datetime.now() + ttl).timestamp())},
+            secret,
+            algorithm="HS256",
+        )
+
+    def check(self, token: str, secret: str) -> bool:
+        try:
+            return bool(jwt.decode(token, secret, algorithms=["HS256"]))
+        except jwt.DecodeError:
+            log.info("Invalid token.")
+            return False
+        except jwt.ExpiredSignatureError:
+            log.info("Expired token.")
+            return False

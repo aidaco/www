@@ -1,15 +1,15 @@
 import time
 
 import aiosqlite
+from fastapi import Request
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from . import core
-from .core import api
 
 db: aiosqlite.Connection
 
 
-@api.on_event("startup")
-async def connectdb():
+async def opendb():
     global db
     db = await aiosqlite.connect(core.config.locations.database)
     await db.execute(
@@ -28,7 +28,6 @@ async def connectdb():
     )
 
 
-@api.on_event("shutdown")
 async def closedb():
     global db
     await db.close()
@@ -63,10 +62,10 @@ async def _insert(request, received, elapsed):
     await db.commit()
 
 
-@api.middleware("http")
-async def dump_request_middleware(request, call_next):
-    received = time.time_ns()
-    response = await call_next(request)
-    elapsed = time.time_ns() - received
-    await _insert(request, received, elapsed)
-    return response
+class LogRequests(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        received = time.time_ns()
+        response = await call_next(request)
+        elapsed = time.time_ns() - received
+        await _insert(request, received, elapsed)
+        return response

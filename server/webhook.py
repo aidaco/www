@@ -8,12 +8,14 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from typing import Annotated
 
 import psutil
-from fastapi import BackgroundTasks, Header, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Request
 
 from . import core
-from .core import api
+
+api = APIRouter()
 
 
 async def cleanup():
@@ -74,7 +76,7 @@ async def rebuild():
         rebuild_static()
 
 
-def verify_signature(body, signature):
+def verify_signature(body, signature) -> str:
     if not signature:
         raise HTTPException(status_code=403, detail="Missing payload signature.")
     expected = (
@@ -94,9 +96,9 @@ def verify_signature(body, signature):
 async def receive_webhook(
     request: Request,
     appname: str,
-    bg_tasks: BackgroundTasks,
-    x_github_event: str = Header(...),
-    x_hub_signature_256: str = Header(...),
+    x_github_event: Annotated[str, Header()],
+    x_hub_signature_256: Annotated[str, Header()],
+    background: BackgroundTasks,
 ):
     global rebuild_task
     match x_github_event:
@@ -114,5 +116,5 @@ async def receive_webhook(
     main = f"refs/heads/{body['repository']['default_branch']}"
     if branch is None or branch != main:
         return {"message": "Not on default branch: no action will be taken."}
-    bg_tasks.add_task(rebuild)
+    background.add_task(rebuild)
     return {"message": "Push received, started upgrade."}

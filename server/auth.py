@@ -1,8 +1,7 @@
 import logging
-from datetime import datetime
+from typing import Annotated, TypeAlias
 
-import jwt
-from fastapi import Cookie, Depends, HTTPException, Request
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
@@ -10,84 +9,58 @@ from . import auth_backends, core
 
 log = logging.getLogger(__name__)
 hasher = auth_backends.hasher()
+tokenizer = auth_backends.tokenizer()
+api = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login", auto_error=False)
 
 
-def make_token(data: dict[str, str]):
-    return jwt.encode(
-        data
-        | {"exp": round((datetime.now() + core.config.jwt.expiration).timestamp())},
-        core.config.jwt.secret,
-        algorithm="HS256",
-    )
+class AuthenticationError(HTTPException):
+    def __init__(self):
+        super().__init__(status_code=401, detail="Unauthorized.")
 
 
-def check_token(token: str) -> bool:
-    try:
-        return bool(jwt.decode(token, core.config.jwt.secret, algorithms=["HS256"]))
-    except jwt.DecodeError:
-        log.info("Invalid token.")
-        return False
-    except jwt.ExpiredSignatureError:
-        log.info("Expired token.")
-        return False
+class Authentication:
+    def __call__(
+        self,
+        header: Annotated[str | None, Depends(oauth2_scheme)] = None,
+        cookie: Annotated[str | None, Cookie(alias="Authorization")] = None,
+    ) -> str:
+        token = header or cookie
+        if not (token and tokenizer.check(token, core.config.jwt.secret)):
+            raise AuthenticationError()
+        return token
+
+
+Auth: TypeAlias = Annotated[str, Depends(Authentication())]
 
 
 class LoginRequest:
-    def __init__(self, form: OAuth2PasswordRequestForm = Depends()):
+    def __init__(self, form: Annotated[OAuth2PasswordRequestForm, Depends()]):
         self.username = form.username
         self.password = form.password
         self.scopes = form.scopes
         self.authenticated = self.authenticate()
-        self.token = self.tokenize()
 
-    def authenticate(self) -> bool:
-        return self.username == core.config.admin.username and hasher.check(
-            self.password, core.config.admin.password_hash
+    def authenticate(self) -> str:
+        if not (
+            self.username == core.config.admin.username
+            and hasher.check(self.password, core.config.admin.password_hash)
+        ):
+            raise HTTPException(status_code=401, detail="Invalid credentials.")
+        return tokenizer.tokenize(
+            {"id": self.username, "scopes": str(self.scopes)},
+            core.config.jwt.secret,
+            core.config.jwt.ttl,
         )
 
-    def tokenize(self) -> str | None:
-        if self.authenticated:
-            return make_token({"id": self.username})
-        return None
+
+class RedirectForLogin:
+    async def __call__(self, request: Request, exc: AuthenticationError):
+        url = request.url
+        core.log.info(f"Hit {url} without authentication.")
+        return RedirectResponse(url="/login")
 
 
-class LoginRequired(Exception):
-    pass
-
-
-class TokenBearer:
-    def __init__(
-        self,
-        exc: HTTPException = HTTPException(status_code=400, detail="Unauthorized."),
-        redirect: bool = False,
-    ):
-        self.redirect = redirect
-        self.exc = exc
-
-    def __call__(
-        self,
-        header: str | None = Depends(oauth2_scheme),
-        cookie: str | None = Cookie(default=None, alias="Authorization"),
-    ):
-        token = (
-            cookie
-            if cookie and check_token(cookie)
-            else (header if header and check_token(header) else None)
-        )
-        if not bool(token):
-            if self.redirect:
-                raise LoginRequired()
-            raise self.exc
-
-
-@core.api.post("/login")
-async def authenticate(request: LoginRequest = Depends()):
-    if request.authenticated:
-        return {"access_token": request.token, "token_type": "bearer"}
-    raise HTTPException(400, "Invalid credentials.")
-
-
-@core.api.exception_handler(LoginRequired)
-async def login_redirect(request: Request, exc: LoginRequired):
-    return RedirectResponse(url="/login")
+@api.post("/login")
+async def authenticate(login: Annotated[LoginRequest, Depends()]):
+    return {"access_token": login.authenticate(), "token_type": "bearer"}

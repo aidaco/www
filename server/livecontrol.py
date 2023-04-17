@@ -1,13 +1,15 @@
 import asyncio
 import logging
 
-from fastapi import Depends, Response, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Response, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
-from . import auth
-from .core import api, manager
+from .auth import Auth
+from .wsmanager import WSManager
 
 log = logging.getLogger(__name__)
+api = APIRouter()
+manager = WSManager()
 
 
 class Command(BaseModel):
@@ -28,15 +30,15 @@ async def ws_connect(websocket: WebSocket):
 
 
 @api.get("/api/state")
-async def active(response: Response, auth=Depends(auth.TokenBearer())):
+async def active(auth: Auth, response: Response):
     return manager.state
 
 
 @api.post("/api/dispatch")
 async def dispatch_command(
-    response: Response,
+    auth: Auth,
     command: Command,
-    auth=Depends(auth.TokenBearer()),
+    response: Response,
 ):
     log.info(f"Dispatching {command}")
     match command.command:

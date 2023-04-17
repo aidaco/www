@@ -16,7 +16,7 @@ class Admin:
 @dataclass
 class JWT:
     secret: str
-    expiration: timedelta = timedelta(days=30)
+    ttl: timedelta = timedelta(days=30)
 
 
 @dataclass

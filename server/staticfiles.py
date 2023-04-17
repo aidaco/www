@@ -3,51 +3,45 @@ import sys
 import zipfile
 from typing import Protocol
 
-from fastapi import Depends, HTTPException, Response
+from fastapi import APIRouter, HTTPException, Response
 from fastapi.responses import FileResponse, StreamingResponse
 
-from . import auth, core
-from .core import api
+from . import core
+from .auth import Auth
 
 
-class PathLoader:
-    def __init__(
-        self,
-        group: str,
-        exc: Exception = HTTPException(status_code=404, detail="Not Found."),
-    ):
-        self.group = group
-        self.exc = exc
+class FileNotFound(HTTPException):
+    def __init__(self):
+        super().__init__(status_code=404, detail="Not Found.")
 
-    def resolve(self, path: str):
+
+class FSLoader:
+    def response(self, prefix: str, path: str):
         if path.startswith("/"):
             path = path[1:]
-        _path = core.config.locations.static / self.group / path
+        _path = core.config.locations.static / prefix / path
 
         if _path.is_dir():
             _path /= "index.html"
         if not _path.is_file():
-            raise self.exc
-        return _path
-
-    def response(self, path: str):
-        return FileResponse(self.resolve(path))
+            raise FileNotFound()
+        return FileResponse(_path)
 
 
-class PyzPathLoader:
+class PYZLoader:
     def __init__(
         self,
-        group: str,
-        exc: Exception = HTTPException(status_code=404, detail="Not Found."),
     ):
         self.pyz = zipfile.ZipFile(sys.argv[0])
-        self.group = group
-        self.exc = exc
 
-    def resolve(self, path: str):
+    def streamfile(self, zinfo):
+        with self.pyz.open(zinfo) as f:
+            yield from f
+
+    def response(self, prefix: str, path: str):
         if path.startswith("/"):
             _path = path[1:]
-        _path = self.group + "/" + path
+        _path = prefix + "/" + path
 
         try:
             zinfo = self.pyz.getinfo(_path)
@@ -56,58 +50,52 @@ class PyzPathLoader:
                 _path += "/index.html"
                 zinfo = self.pyz.getinfo(_path)
             except KeyError:
-                raise self.exc
+                raise FileNotFound()
 
         if zinfo.is_dir():
             try:
                 zinfo = self.pyz.getinfo(_path + "index.html")
             except KeyError:
-                raise self.exc
-        return zinfo
-
-    def response(self, path: str):
-        zinfo = self.resolve(path)
-
-        def it():
-            with self.pyz.open(zinfo) as f:
-                yield from f
+                raise FileNotFound()
 
         return StreamingResponse(
-            it(), media_type=mimetypes.guess_type(zinfo.filename)[0]
+            self.streamfile(zinfo), media_type=mimetypes.guess_type(zinfo.filename)[0]
         )
 
 
 class Loader(Protocol):
-    def response(self, path: str) -> Response:
+    def response(self, prefix: str, path: str) -> Response:
         ...
 
 
-loaders: dict[str, Loader] = {}
+_loader: Loader
 
 
-def get_loader(group: str):
-    global loaders
+def loader():
+    global _loader
     try:
-        return loaders[group]
-    except KeyError:
-        loader: Loader
+        return _loader
+    except NameError:
         if core.config.zipapp:
-            loader = loaders[group] = PyzPathLoader(group)
+            _loader = PYZLoader()
         else:
-            loader = loaders[group] = PathLoader(group)
-        return loader
+            _loader = FSLoader()
+        return _loader
+
+
+api = APIRouter()
 
 
 @api.get("/admin")
-async def base_admin(auth=Depends(auth.TokenBearer(redirect=True))):
-    return await protected_file("", auth)
+async def base_admin(auth: Auth):
+    return await protected_file(auth, "")
 
 
 @api.get("/admin/{path:path}")
-async def protected_file(path: str, auth=Depends(auth.TokenBearer(redirect=True))):
-    return get_loader("protected").response(path)
+async def protected_file(auth: Auth, path: str):
+    return loader().response("protected", path)
 
 
 @api.get("/{path:path}")
 async def public_file(path: str):
-    return get_loader("public").response(path)
+    return loader().response("public", path)

@@ -5,4 +5,4 @@
 **/.vscode
 *.pyz
 *.sqlite3
-aidan.software.toml
+*.toml

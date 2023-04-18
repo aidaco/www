@@ -10,8 +10,14 @@ from pathlib import Path
 class Admin:
     username: str
     password_hash: str
-    rebuild_secret: str
-    verify_rebuild_signature: bool
+
+
+@dataclass
+class Rebuild:
+    branch: str
+    secret: str
+    verify_signature: bool
+    verify_branch: bool
 
 
 @dataclass
@@ -29,6 +35,7 @@ class Locations:
 @dataclass
 class Config:
     admin: Admin
+    rebuild: Rebuild
     jwt: JWT
     locations: Locations
     zipapp: bool = sys.argv[0].endswith("pyz")

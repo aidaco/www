@@ -76,21 +76,35 @@ async def rebuild():
         rebuild_static()
 
 
-def verify_signature(body, signature) -> str:
-    if core.config.admin.verify_rebuild_signature:
-        if not signature:
-            raise HTTPException(status_code=403, detail="Missing payload signature.")
-        expected = (
-            "sha256="
-            + hmac.new(
-                core.config.admin.rebuild_secret.encode("utf-8"),
-                msg=body,
-                digestmod=hashlib.sha256,
-            ).hexdigest()
-        )
-        if not hmac.compare_digest(expected, signature):
-            raise HTTPException(status_code=403, detail="Failed to verify signature.")
-    return body.decode("utf-8")
+def verify_signature(body: bytes, signature: str) -> None:
+    if not signature:
+        raise HTTPException(status_code=403, detail="Missing payload signature.")
+    expected = (
+        "sha256="
+        + hmac.new(
+            core.config.rebuild.secret.encode("utf-8"),
+            msg=body,
+            digestmod=hashlib.sha256,
+        ).hexdigest()
+    )
+    if not hmac.compare_digest(expected, signature):
+        raise HTTPException(status_code=403, detail="Failed to verify signature.")
+
+
+def verify_branch(body: bytes, branch: str | None = None) -> bool:
+    try:
+        data = json.loads(body.decode("utf-8"))
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=403, detail="Invalid request body.")
+    requested = data.get("ref", None)
+    expected = (
+        f"refs/heads/{branch}"
+        if branch
+        else f"refs/heads/{data['repository']['default_branch']}"
+    )
+    if requested is None or requested != expected:
+        return False
+    return True
 
 
 @api.post("/webhook/{appname}")
@@ -109,13 +123,12 @@ async def receive_webhook(
             pass
         case _:
             return {"message": "Unknown: no action will be taken."}
-    try:
-        body = json.loads(verify_signature(await request.body(), x_hub_signature_256))
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=403, detail="Invalid request body.")
-    branch = body.get("ref", None)
-    main = f"refs/heads/{body['repository']['default_branch']}"
-    if branch is None or branch != main:
+    body = await request.body()
+    if core.config.rebuild.verify_signature:
+        verify_signature(body, x_hub_signature_256)
+    if core.config.rebuild.verify_branch and not verify_branch(
+        body, core.config.rebuild.branch
+    ):
         return {"message": "Not on default branch: no action will be taken."}
     background.add_task(rebuild)
     return {"message": "Push received, started upgrade."}

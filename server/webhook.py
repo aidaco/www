@@ -49,6 +49,7 @@ def rebuild_pyz():
         subprocess.run("./dev.py buildpyz", shell=True, capture_output=True, check=True)
     (git_dir / "aidan.software.pyz").replace(Path.cwd() / "aidan.software.pyz")
     shutil.rmtree(git_dir)
+    core.log.info("Successfully rebuilt. Restarting...")
     os.execv(sys.executable, ["python", *sys.argv])
 
 
@@ -60,9 +61,8 @@ def rebuild_static():
         check=True,
         capture_output=True,
     )
-    print(sys.executable)
+    core.log.info("Successfully rebuilt. Restarting...")
     args = (sys.executable, (sys.executable, "-m", "server", *sys.argv[1:]))
-    print(f"os.execv{args}")
     os.execv(*args)
 
 

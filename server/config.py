@@ -11,6 +11,7 @@ class Admin:
     username: str
     password_hash: str
     rebuild_secret: str
+    verify_rebuild_signature: bool
 
 
 @dataclass

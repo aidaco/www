@@ -18,7 +18,9 @@ def sh(cmd, ck=True):
 
 root_dir = Path.cwd()
 protected_dir = root_dir / "protected"
+protected_dist_dir = protected_dir / "dist"
 public_dir = root_dir / "public"
+public_dist_dir = public_dir / "dist"
 dist_dir = root_dir / "dist"
 build_dir = root_dir / "build"
 
@@ -34,14 +36,28 @@ def fix():
 
 
 @cli.command()
-def clean():
-    shutil.rmtree(dist_dir, ignore_errors=True)
-    shutil.rmtree(protected_dir / "dist", ignore_errors=True)
-    shutil.rmtree(public_dir / "dist", ignore_errors=True)
-    shutil.rmtree(build_dir, ignore_errors=True)
+def clean(
+    dry: bool = False,
+    build: bool = True,
+    dist: bool = True,
+    caches: list[str] = ["__pycache__", ".mypy_cache", ".ruff_cache"],
+):
 
-    for d in root_dir.glob('**/__pycache__'):
-        shutil.rmtree(d, ignore_errors=True)
+    dirs = []
+    if build:
+        dirs.append(build_dir)
+    if dist:
+        dirs += [dist_dir, public_dist_dir, protected_dist_dir]
+
+    for pattern in caches:
+        for directory in root_dir.rglob(pattern):
+            dirs.append(directory)
+
+    if dry:
+        print(*dirs, sep="\n")
+    else:
+        for d in dirs:
+            shutil.rmtree(d, ignore_errors=True)
 
 
 @cli.command()

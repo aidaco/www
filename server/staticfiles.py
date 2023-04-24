@@ -83,7 +83,7 @@ def loader():
         return _loader
 
 
-api = APIRouter()
+api: APIRouter = APIRouter()
 
 
 @api.get("/admin")

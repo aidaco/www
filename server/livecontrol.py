@@ -8,7 +8,7 @@ from .auth import Auth
 from .wsmanager import WSManager
 
 log = logging.getLogger(__name__)
-api = APIRouter()
+api: APIRouter = APIRouter()
 manager = WSManager()
 
 

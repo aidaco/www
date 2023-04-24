@@ -1,8 +1,9 @@
 from pathlib import Path
 
+from rich import print
 from typer import Typer
 
-from server import auth_backends, config, core
+from server import config, core
 
 cli = Typer()
 
@@ -13,14 +14,15 @@ def run():
 
 
 @cli.command()
-def initconfig(path: Path):
-    path.write_text("\n".join(config._dataclass_toml_template(config.Config)))
+def initconfig(path: Path = Path("aidan.software.toml")):
+    config.create(
+        input("Admin username:"), input("Admin password:"), input("JWT secret:"), path
+    )
 
 
 @cli.command()
-def hashpwd(text: str):
-    hasher = auth_backends.hasher()
-    print(hasher.hash(text))
+def checkconfig(path: Path = Path("aidan.software.toml")):
+    print(config.read(path))
 
 
 if __name__ == "__main__":

@@ -4,17 +4,17 @@ import logging
 import os
 from datetime import datetime, timedelta
 
-log = logging.getLogger(__name__)
-
-
 import jwt  # PyJWT: https://github.com/jpadilla/pyjwt
 
 try:
-    import argon2  # argon2-cffi: https://github.com/hynek/argon2-cffi
+    # argon2-cffi: https://github.com/hynek/argon2-cffi
+    import argon2
 
     USE_HASHLIB = False
 except ImportError:
     USE_HASHLIB = True
+
+log = logging.getLogger(__name__)
 
 
 def hasher():

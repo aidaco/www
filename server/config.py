@@ -1,90 +1,79 @@
 import json
 import sys
 import tomllib
-from dataclasses import _MISSING_TYPE, dataclass, fields, is_dataclass
 from datetime import timedelta
 from pathlib import Path
+from typing import Literal
+
+import tomli_w
+from pydantic import BaseModel, Field, parse_obj_as
+
+from . import auth_backends
 
 
-@dataclass
-class Admin:
+class Admin(BaseModel):
     username: str
     password_hash: str
 
 
-@dataclass
-class Rebuild:
-    branch: str
-    secret: str
-    verify_signature: bool
-    verify_branch: bool
-
-
-@dataclass
-class JWT:
+class JWT(BaseModel):
     secret: str
     ttl: timedelta = timedelta(days=30)
 
 
-@dataclass
-class Locations:
+class Rebuild(BaseModel):
+    secret: str
+    branch: str | None = None
+    verify_signature: bool = True
+    verify_branch: bool = True
+
+
+class Locations(BaseModel):
     static: Path = Path("dist")
     database: Path = Path("aidan.software.sqlite3")
 
 
-@dataclass
-class Config:
+class Config(BaseModel):
     admin: Admin
-    rebuild: Rebuild
     jwt: JWT
-    locations: Locations
+    rebuild: Rebuild | Literal[False] = False
+    locations: Locations = Field(default_factory=Locations)
     zipapp: bool = sys.argv[0].endswith("pyz")
 
-    @staticmethod
-    def read(path: Path):
-        match path.suffix:
-            case ".toml":
-                load = tomllib.loads
-            case ".json":
-                load = json.loads
-            case _:
-                raise ValueError("Config file must be TOML or JSON.")
-        return _dataclass_fromdict(Config, load(path.read_text()))
 
-    @staticmethod
-    def locate(name: str):
-        dirs = [Path.cwd(), Path.home(), Path.home() / ".config"]
-        for d in dirs:
-            for f in d.glob(f"{name}.*"):
-                if f.suffix in {".toml", ".json"}:
-                    return Config.read(f)
-        raise Exception("No config file found")
+def read(path: Path):
+    match path.suffix:
+        case ".toml":
+            load = tomllib.loads
+        case ".json":
+            load = json.loads
+        case _:
+            raise ValueError("Config file must be TOML or JSON.")
+    return parse_obj_as(Config, load(path.read_text()))
 
 
-def _dataclass_toml_template(dcls):
-    for field in fields(dcls):
-        if is_dataclass(field.type):
-            yield f"[ {field.name} ]"
-            yield from _dataclass_toml_template(field.type)
-        else:
-            value = (
-                repr(field.default)
-                if not isinstance(field.default, _MISSING_TYPE)
-                else "''"
+def create(username: str, password: str, jwt_secret: str, path: Path):
+    path.write_text(
+        dumps_toml(
+            Config(
+                admin=Admin(
+                    username=username,
+                    password_hash=auth_backends.hasher().hash(password),
+                ),
+                jwt=JWT(secret=jwt_secret),
             )
-            yield f"{field.name} = {value}"
+        )
+    )
 
 
-def _dataclass_fromdict(dcls, data):
-    kwargs = {}
-    for field in fields(dcls):
-        value = data.get(field.name, field.default)
-        if isinstance(value, _MISSING_TYPE):
-            raise ValueError(f"Required field not found: {field.name}")
-        if is_dataclass(field.type):
-            kwargs[field.name] = _dataclass_fromdict(field.type, value)
-        else:
-            if not isinstance(value, field.type):
-                value = field.type(value)
-            kwargs[field.name] = value
-    return dcls(**kwargs)
+def locate(name: str):
+    dirs = [Path.cwd(), Path.home(), Path.home() / ".config"]
+    for d in dirs:
+        for f in d.glob(f"{name}.*"):
+            if f.suffix in {".toml", ".json"}:
+                return read(f)
+    raise Exception("No config file found")
+
+
+def dumps_toml(config: Config) -> str:
+    return tomli_w.dumps(json.loads(config.json()))

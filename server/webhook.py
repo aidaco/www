@@ -76,13 +76,13 @@ async def rebuild():
         rebuild_static()
 
 
-def verify_signature(body: bytes, signature: str) -> None:
+def verify_signature(body: bytes, signature: str, secret: str) -> None:
     if not signature:
         raise HTTPException(status_code=403, detail="Missing payload signature.")
     expected = (
         "sha256="
         + hmac.new(
-            core.config.rebuild.secret.encode("utf-8"),
+            secret.encode("utf-8"),
             msg=body,
             digestmod=hashlib.sha256,
         ).hexdigest()
@@ -124,8 +124,10 @@ async def receive_webhook(
         case _:
             return {"message": "Unknown: no action will be taken."}
     body = await request.body()
+    if core.config.rebuild is False:
+        return {"message": "Rebuild disabled."}
     if core.config.rebuild.verify_signature:
-        verify_signature(body, x_hub_signature_256)
+        verify_signature(body, x_hub_signature_256, core.config.rebuild.secret)
     if core.config.rebuild.verify_branch and not verify_branch(
         body, core.config.rebuild.branch
     ):

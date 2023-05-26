@@ -1,21 +1,29 @@
-<script>
-  import BorderCard from "./BorderCard.svelte"
-</script>
-
-<BorderCard>
-  <div class="container">
-    <div class="center-title">
-      <h1>Aidan Courtney</h1>
-      <h2>Contact Info</h2>
-    </div>
-    <ul>
-      <li><em>phone</em><b>::</b><a class="link" href="sms:+16317048992">631-704-8994</a></li>
-      <li><em>email</em><b>::</b><a class="link" href="mailto:aidanfc97@gmail.com">aidanfc97@gmail.com</a></li>
-      <li><em>linkedin</em><b>::</b><a class="link" href="https://www.linkedin.com/in/aidan-courtney">aidan-courtney</a></li>
-    </ul>
-    <a class="home" href="/">⌂</a>
-  </div>
-</BorderCard>
+<div class="container">
+  <ul>
+    <li>
+      <a class="link" href="sms:+16317048992">631-704-8994</a>
+      <br />
+      <em>phone</em>
+    </li>
+    <li>
+      <a class="link" href="mailto:aidanfc97@gmail.com">aidanfc97@gmail.com</a>
+      <br />
+      <em>email</em>
+    </li>
+    <li>
+      <a class="link" href="https://www.linkedin.com/in/aidan-courtney"
+        >aidan-courtney</a
+      >
+      <br />
+      <em>linkedin</em>
+    </li>
+    <li>
+      <a class="link" href="https://www.github.com/aidaco">aidaco</a>
+      <br />
+      <em>github</em>
+    </li>
+  </ul>
+</div>
 
 <style>
   .container {
@@ -24,14 +32,9 @@
     justify-content: center;
     align-items: center;
     gap: 1rem;
+    font-size: 16px;
   }
 
-  .center-title {
-    text-align: center;
-  }
-
-  h1,
-  h2,
   ul {
     margin: 0;
     padding: 0;
@@ -39,20 +42,6 @@
 
   em {
     color: var(--content-highlight-alt);
-  }
-
-  h1 {
-    font-size: 2em;
-    color: var(--content);
-  }
-
-  h2 {
-    font-size: 1.25em;
-    color: var(--content-highlight);
-  }
-
-  b {
-    color: var(--content-division);
   }
 
   ul {
@@ -77,10 +66,5 @@
     content: " 🔗";
     position: absolute;
     start: 3px;
-  }
-
-  .home {
-    text-decoration: none;
-    font-size: 4rem;
   }
 </style>

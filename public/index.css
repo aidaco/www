@@ -5,13 +5,3 @@ body {
   margin: 0;
   padding: 0;
 }
-
-body {
-  background-image: radial-gradient(
-    var(--background-accent),
-    var(--background)
-  );
-  color: var(--content);
-  font-family: monospace;
-  font-size: 18px;
-}

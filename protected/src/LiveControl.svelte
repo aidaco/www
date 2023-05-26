@@ -34,18 +34,11 @@
 
 <div>
   {#if !active}
-    <button class="connected" on:click={activate}>{uid}</button
-    >
+    <button class="connected" on:click={activate}>{uid}</button>
     <input type="text" bind:value={content} disabled />
   {:else}
-    <button class="activated" on:click={deactivate}
-      >{uid}</button
-    >
-    <input
-      type="text"
-      bind:value={content}
-      on:input={update}
-    />
+    <button class="activated" on:click={deactivate}>{uid}</button>
+    <input type="text" bind:value={content} on:input={update} />
   {/if}
 </div>
 

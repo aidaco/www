@@ -5,11 +5,12 @@
   let content = "";
 
   function makeWebSocket(path) {
-    var protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://'
-    var host = window.location.hostname
-    var defaultPort = window.location.protocol === 'https:' ? '443' : '80'
-    var port = window.location.port === defaultPort ? '' : ':'+window.location.port
-    return new WebSocket(protocol + host + port + path)
+    var protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+    var host = window.location.hostname;
+    var defaultPort = window.location.protocol === "https:" ? "443" : "80";
+    var port =
+      window.location.port === defaultPort ? "" : ":" + window.location.port;
+    return new WebSocket(protocol + host + port + path);
   }
 
   var match_cmd = function (s) {

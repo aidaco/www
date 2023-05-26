@@ -25,7 +25,7 @@
     var respData = await resp.json();
     console.log(`Success ${JSON.stringify(respData)}`);
     document.cookie = `Authorization=${respData.access_token};secure;max-age=86400;`;
-    location.href = '/admin'
+    location.href = "/admin";
   }
 </script>
 
@@ -61,29 +61,29 @@
   }
 
   button {
-	appearance: none;
-	background-color: transparent;
-	color: var(--content);
-	border: 2px solid var(--border);
-	margin: 0.5rem;
-	padding: 0.5rem;
-	box-sizing: border-box;
-	width: 100%;
+    appearance: none;
+    background-color: transparent;
+    color: var(--content);
+    border: 2px solid var(--border);
+    margin: 0.5rem;
+    padding: 0.5rem;
+    box-sizing: border-box;
+    width: 100%;
   }
 
   input {
-	appearance: none;
-	background-color: transparent;
-	border: 2px solid var(--border);
-	color: var(--content);
-	padding: 0.5rem;
-	margin: 0.5rem;
-	width: 100%;
-	box-sizing: border-box;
+    appearance: none;
+    background-color: transparent;
+    border: 2px solid var(--border);
+    color: var(--content);
+    padding: 0.5rem;
+    margin: 0.5rem;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   input::placeholder {
-	color: var(--content);
-	opacity: 1;
+    color: var(--content);
+    opacity: 1;
   }
 </style>

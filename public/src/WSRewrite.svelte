@@ -1,52 +1,40 @@
-<script>
-  let url = '/api/live'
-  let activated = false
-  let content = ''
-
-  function makeWebSocket(path) {
-    var protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://'
-    var host = window.location.hostname
-    var defaultPort = window.location.protocol === 'https:' ? '443' : '80'
-    var port = window.location.port === defaultPort ? '' : ':'+window.location.port
-    return new WebSocket(protocol + host + port + path)
-  }
-
-  var match_cmd = function (s) {
-    var match = s.match("^([A-Za-z]*)( (.*))?");
-    return [match[1], match[3]];
-  };
-
+<script lang="ts">
   import { onMount, onDestroy } from "svelte";
+  import WSRewrite from "./lib/WSRewrite";
+  let url = "/api/live";
+  let activated = false;
+  let content = "";
 
-  onMount(async () => {
-    var ws = makeWebSocket(url);
-    ws.onerror = (event) => {
-      console.log(event.data);
-    };
-    ws.onmessage = (event) => {
-      var [cmd, value] = match_cmd(event.data);
-      switch (cmd) {
+  let rewrite = new WSRewrite("/api/live", {
+    oncommand: (command, data) => {
+      switch (command) {
         case "CONNECT":
           break;
         case "ACTIVATE":
           activated = true;
           break;
         case "UPDATE":
-          content = value;
+          content = data;
           break;
         case "DEACTIVATE":
           activated = false;
           break;
       }
-    };
-
-    ws.onclose = (event) => {
+    },
+    onclose: () => {
       activated = false;
-    };
+    },
+    onerror: (event) => {
+      console.log(event);
+    },
+  });
+
+  onMount(async () => {
+    rewrite.connect();
   });
 
   onDestroy(() => {
-    ws.close();
+    rewrite.disconnect();
     activated = false;
   });
 </script>

@@ -1,5 +1,5 @@
-<div class='responsive-orientation'>
-  <slot/>
+<div class="responsive-orientation">
+  <slot />
 </div>
 
 <style>
@@ -13,7 +13,7 @@
     align-items: center;
     margin: 2rem;
     padding: 0;
-    gap: 1rem
+    gap: 1rem;
   }
 
   @media screen and (max-width: 700px) {

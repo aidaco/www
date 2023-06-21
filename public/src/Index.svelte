@@ -91,6 +91,10 @@
     font-style: italic;
   }
 
+  .nav-link {
+    font-size: 1.5rem;
+  }
+
   :checked + span {
     text-decoration: overline;
   }

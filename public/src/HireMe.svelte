@@ -7,12 +7,12 @@
 
 <div class="container">
   <span>
-    Are you looking to hire an experienced software developer? Look no further!
-    After out-growing my current position, I'm seeking a mid-level role with an
-    emphasis on professional development. Python has been my language of choice
-    for the last few years, but I enjoy learning new technologies and do so
-    quickly. Take a look at <a href={resumeUrl}>my resume</a> and feel free to contact
-    me for any reason.
+    Are looking for a driven and passionate software developer to join your
+    team? Look no further! I am actively searching for an entry-to-mid level
+    position at an organization that emphasizes ongoing professional
+    development. Python has been my language of choice for the past few years,
+    but I pride myself on quickly adapting to new technologies. I encourage you
+    to review my <a href={resumeUrl}>my resume</a> and contact me at your convenience.
   </span>
 </div>
 

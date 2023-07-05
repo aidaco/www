@@ -26,11 +26,12 @@
   }
 
   .box {
-    width: 75%;
-    height: 50%;
+    width: 85%;
+    height: 75%;
     margin: 0;
     padding: 0.75rem;
     gap: 1rem;
+    overflow: hidden;
   }
 
   .shifting-border {

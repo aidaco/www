@@ -1,11 +1,9 @@
 <script lang="ts">
   import BorderCard from "./BorderCard.svelte";
   import Contact from "./Contact.svelte";
-  import HireMe from "./HireMe.svelte";
+  import Hire from "./Hire.svelte";
   import WSRewrite from "./WSRewrite.svelte";
-
-  let displayState: string = "home";
-  let setDisplayState = (value: string) => (displayState = value);
+  import url from "./lib/url";
 </script>
 
 <BorderCard>
@@ -13,50 +11,37 @@
     <div class="container">
       <ul class="nav">
         <li>
-          <label>
-            <input
-              type="radio"
-              bind:group={displayState}
-              name="displayState"
-              value={"home"}
-              checked
-            />
-            <span class="nav-link">Home</span>
-          </label>
+          {#if $url.hash === "#home" || $url.hash === ""}
+            <a href="#home" class="nav-link nav-current">Home</a>
+          {:else}
+            <a href="#home" class="nav-link">Home</a>
+          {/if}
         </li>
         <li>
-          <label>
-            <input
-              type="radio"
-              bind:group={displayState}
-              name="displayState"
-              value={"contact"}
-            />
-            <span class="nav-link">Contact</span>
-          </label>
+          {#if $url.hash === "#contact"}
+            <a href="#contact" class="nav-link nav-current">Contact</a>
+          {:else}
+            <a href="#contact" class="nav-link">Contact</a>
+          {/if}
         </li>
         <li>
-          <label>
-            <input
-              type="radio"
-              bind:group={displayState}
-              name="displayState"
-              value={"hiring"}
-            />
-            <span class="nav-link">Hire Me</span>
-          </label>
+          {#if $url.hash === "#hire"}
+            <a href="#hire" class="nav-link nav-current">Hire</a>
+          {:else}
+            <a href="#hire" class="nav-link">Hire</a>
+          {/if}
         </li>
       </ul>
       <div class="detail-view">
-        {#if displayState === "home"}
+        {#if $url.hash === "#home" || $url.hash === ""}
           <div class="center-title">
             <h1>Aidan Courtney</h1>
             <h2>Software Developer</h2>
           </div>
-        {:else if displayState === "contact"}
+        {:else if $url.hash === "#contact"}
           <Contact />
-        {:else if displayState === "hiring"}
-          <HireMe />
+        {:else if $url.hash === "#hire"}
+          <Hire />
         {/if}
       </div>
     </div>
@@ -70,42 +55,42 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    overflow: hidden;
   }
 
   .nav {
     display: flex;
     flex-direction: row;
-    width: 95%;
+    width: 100%;
+    height: 10%;
     margin: 0;
     padding: 0.25rem 0 0 0;
     border-bottom: 0.1rem solid white;
     justify-content: space-evenly;
   }
 
-  .nav > li > label > input {
-    display: none;
+  .nav-link {
+    color: var(--content);
+    font-size: 1.5rem;
+    text-decoration: underline;
   }
 
-  .nav > li:hover {
-    text-decoration: underline;
+  .nav-link:hover {
     font-style: italic;
   }
 
-  .nav-link {
-    font-size: 1.5rem;
-  }
-
-  :checked + span {
+  .nav-current {
     text-decoration: overline;
   }
 
   .detail-view {
+    width: 80%;
+    height: 90%;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 95%;
-    height: 95%;
-    overflow: hidden;
+    overflow: auto;
   }
 
   .center-title {

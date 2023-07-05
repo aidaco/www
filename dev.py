@@ -64,10 +64,10 @@ def clean(
 def buildstatic():
     clean()
     with contextlib.chdir(protected_dir):
-        sh("npm install")
+        sh("npm ci")
         sh("npm run build")
     with contextlib.chdir(public_dir):
-        sh("npm install")
+        sh("npm ci")
         sh("npm run build")
 
     dist_dir.mkdir(exist_ok=True)

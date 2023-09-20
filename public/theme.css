@@ -1,11 +1,26 @@
-body {
+@font-face {
+  font-family: "Montserrat Regular";
+  src: url(/assets/Montserrat-Regular.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: "Zector";
+  src: url(/assets/Zector.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: "Origami Mommy";
+  src: url(/assets/OrigamiMommy.ttf) format('truetype');
+}
+
+:root {
   --background: #141414;
   --background-accent: #191b1ce0;
-  --background-highlight: #070c0c85;
-  --content: #ffffff;
-  --content-accent: #e8ff00;
-  --content-highlight: #00fbe4;
-  --content-highlight-alt: #ff9800;
-  --content-division: #e91e63;
-  --border: #9e9e9e;
+  --background-highlight: #070c0c;
+  --content: #c0c8d5;
+  --title: white;
+  --highlight: #3aeaff;
+  --highlight-alt: #5AFF15;
+  font-family: "Montserrat Regular", monospace;
+  font-size: 20px;
 }

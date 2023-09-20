@@ -1,4 +1,4 @@
-const makeUrlFromPath = (path: string) => {
+const makeUrlFromPath = (path) => {
   var protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
   var host = window.location.hostname;
   var defaultPort = window.location.protocol === "https:" ? "442" : "80";
@@ -7,22 +7,18 @@ const makeUrlFromPath = (path: string) => {
   return protocol + host + port + path;
 };
 
-const parseCommand = (source: string) => {
+const parseCommand = (source) => {
   let match = source.match("^([A-Za-z]*)( (.*))?");
   return [match[1], match[3]];
 };
 
-interface RewriteHandler {
-  onerror: (event: Event) => void;
-  onclose: () => void;
-  oncommand: (type: string, value: string) => void;
-}
 
-export default class WSRewrite {
-  url: string;
-  handler: RewriteHandler;
-  ws: WebSocket;
-  constructor(path: string, handler: RewriteHandler) {
+export class WSRewrite {
+  url;
+  handler;
+  ws;
+
+  constructor(path, handler) {
     this.url = makeUrlFromPath(path);
     this.handler = handler;
   }

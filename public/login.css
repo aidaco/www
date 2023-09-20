@@ -14,4 +14,66 @@ body {
   color: var(--content);
   font-family: monospace;
   font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+main {
+  margin: 0;
+  padding: 2rem;
+  background: var(--background-accent);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+}
+
+button {
+  margin: 0;
+  padding: 0.5rem 1rem;
+  appearance: none;
+  background-color: var(--background-accent);
+  color: var(--content);
+  border: 2px solid var(--content);
+  border-radius: 0;
+  box-sizing: border-box;
+}
+
+button:hover, button:focus {
+  outline: none;
+  background-color: var(--content);
+  color: var(--background-accent);
+  border: 2px solid var(--content);
+  border-radius: 0;
+}
+
+input {
+  margin: 0;
+  padding: 0.5rem;
+  appearance: none;
+  background-color: var(--background-accent);
+  color: var(--content);
+  box-sizing: border-box;
+  border: none;
+  border-bottom: 0.1rem solid var(--content);
+  border-radius: 0;
+}
+
+input::placeholder {
+  color: var(--content);
+  opacity: 1;
+}
+
+input:focus {
+  outline: none;
+  color: var(--background-accent);
+  background-color: var(--content);
+  border: 0.1rem solid var(--content);
+  border-radius: 0;
+}
+
+input:focus::placeholder {
+  color: var(--background-accent);
 }

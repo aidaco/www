@@ -25,4 +25,4 @@ async function login(event) {
   location.href = "/admin";
 }
 
-document.querySelector('button').onclick = login
+document.querySelector("button").onclick = login;

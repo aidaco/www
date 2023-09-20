@@ -12,7 +12,6 @@ const parseCommand = (source) => {
   return [match[1], match[3]];
 };
 
-
 export class WSRewrite {
   url;
   handler;

@@ -1,13 +1,13 @@
-const { WSRewrite } = await import('/wsrewrite.js')
+const { WSRewrite } = await import("/wsrewrite.js");
 
 let url = "/api/live";
-let target = document.querySelector('main')
+let target = document.querySelector("main");
 let activated = false;
-let originalContent = target.innerHTML
+let originalContent = target.innerHTML;
 let rewriteContent = "";
 
 function update() {
-  target.innerHTML = activated? rewriteContent : originalContent
+  target.innerHTML = activated ? rewriteContent : originalContent;
 }
 
 let rewrite = new WSRewrite("/api/live", {
@@ -25,19 +25,19 @@ let rewrite = new WSRewrite("/api/live", {
         activated = false;
         break;
     }
-    update()
+    update();
   },
   onclose: () => {
     activated = false;
-    update()
+    update();
   },
   onerror: (event) => {
     console.log(event);
   },
 });
 
-rewrite.connect()
-window.onbeforeunload = function() {
+rewrite.connect();
+window.onbeforeunload = function () {
   rewrite.disconnect();
   activated = false;
-}
+};

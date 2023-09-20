@@ -1,16 +1,16 @@
 @font-face {
   font-family: "Montserrat Regular";
-  src: url(/assets/Montserrat-Regular.ttf) format('truetype');
+  src: url(/assets/Montserrat-Regular.ttf) format("truetype");
 }
 
 @font-face {
   font-family: "Zector";
-  src: url(/assets/Zector.ttf) format('truetype');
+  src: url(/assets/Zector.ttf) format("truetype");
 }
 
 @font-face {
   font-family: "Origami Mommy";
-  src: url(/assets/OrigamiMommy.ttf) format('truetype');
+  src: url(/assets/OrigamiMommy.ttf) format("truetype");
 }
 
 :root {
@@ -20,7 +20,7 @@
   --content: #c0c8d5;
   --title: white;
   --highlight: #3aeaff;
-  --highlight-alt: #5AFF15;
+  --highlight-alt: #5aff15;
   font-family: "Montserrat Regular", monospace;
   font-size: 20px;
 }

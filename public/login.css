@@ -41,7 +41,8 @@ button {
   box-sizing: border-box;
 }
 
-button:hover, button:focus {
+button:hover,
+button:focus {
   outline: none;
   background-color: var(--content);
   color: var(--background-accent);

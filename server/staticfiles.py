@@ -23,6 +23,8 @@ class FSLoader:
 
         if _path.is_dir():
             _path /= "index.html"
+        if not _path.exists() and _path.with_suffix('.html').exists():
+            _path = _p
         if not _path.is_file():
             raise FileNotFound()
         return FileResponse(_path)

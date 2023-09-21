@@ -41,6 +41,7 @@ class LoginRequest:
         self.scopes = form.scopes
         self.authenticated = self.authenticate()
 
+
     def authenticate(self) -> str:
         if not (
             self.username == core.config.admin.username

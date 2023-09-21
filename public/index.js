@@ -19,7 +19,7 @@ let rewrite = new WSRewrite("/api/live", {
         activated = true;
         break;
       case "UPDATE":
-        content = data;
+        rewriteContent = data;
         break;
       case "DEACTIVATE":
         activated = false;

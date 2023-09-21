@@ -50,7 +50,7 @@ main::before {
   height: 100%;
   top: 0%;
   left: 0%;
-  scale: 5;
+  scale: 15;
   background: conic-gradient(
     red,
     orange,

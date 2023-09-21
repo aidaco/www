@@ -1,34 +1,22 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="stylesheet" href="/index.css" />
-    <script type="module" src="/index.js"></script>
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+    <link rel="stylesheet" href="/admin/index.css" />
+    <script type="module" src="/admin/index.js"></script>
     <title>🐵</title>
   </head>
   <body>
+    <nav>
+      <h1>admin</h1>
+      <ul>
+        <li>rewrite</li>
+      </ul>
+    </nav>
     <main>
-      <BorderCard>
-        {#if Object.keys(state).length > 0}
-          <ul>
-            {#each Object.entries(state) as [uid, [active, content]]}
-              <li>
-                {#if !active}
-                  <button class="connected" on:click={activate}>{uid}</button>
-                  <input type="text" bind:value={content} disabled />
-                {:else}
-                  <button class="activated" on:click={deactivate}>{uid}</button>
-                  <input type="text" bind:value={content} on:input={update} />
-                {/if}
-              </li>
-            {/each}
-          </ul>
-        {:else}
-          <div>No Connections.</div>
-        {/if}
-      </BorderCard>
+      <ul></ul>
     </main>
   </body>
 </html>

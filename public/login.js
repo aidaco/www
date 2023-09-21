@@ -1,12 +1,11 @@
-let username;
-let password;
+let username = document.querySelector("input[name=username]");
+let password = document.querySelector("input[name=password]");
 
 async function login(event) {
-  console.log(`POSTING ${username} ${password}`);
   var data = [];
   for (var [k, v] of Object.entries({
-    username: username,
-    password: password,
+    username: username.value,
+    password: password.value,
     grant_type: "password",
   })) {
     data.push(encodeURIComponent(k) + "=" + encodeURIComponent(v));

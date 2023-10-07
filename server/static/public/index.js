@@ -1,6 +1,5 @@
 const { WSRewrite } = await import("/wsrewrite.js");
 
-let url = "/api/live";
 let target = document.querySelector("main");
 let activated = false;
 let originalContent = target.innerHTML;
@@ -10,7 +9,7 @@ function update() {
   target.innerHTML = activated ? rewriteContent : originalContent;
 }
 
-let rewrite = new WSRewrite("/api/live", {
+let rewrite = new WSRewrite("/client", {
   oncommand: (command, data) => {
     switch (command) {
       case "CONNECT":

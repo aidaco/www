@@ -6,3 +6,4 @@
 *.pyz
 *.sqlite3
 *.toml
+*.egg-info

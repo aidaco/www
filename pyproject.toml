@@ -1,32 +1,38 @@
-[tool.poetry]
-name = "aidan-software"
-version = "0.1.3"
-description = "Personal website."
-authors = ["Aidan Courtney <aidanfc97@gmail.com>"]
-readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.11"
-fastapi = "*"
-typer = "*"
-uvicorn = "*"
-rich = "*"
-pyjwt = "*"
-argon2-cffi = "*"
-python-multipart = "*"
-aiosqlite = "*"
-websockets = "*"
-types-psutil = "*"
-
-[tool.poetry.group.dev.dependencies]
-black = "*"
-isort = "*"
-ruff = "*"
-pytest = "*"
-
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "madness"
+version = "0.1.3"
+description = "Personal Website"
+authors = [
+  {name = 'Aidan Courtney', email = 'aidanfc97@gmail.com'},
+]
+license = {text = 'MIT License'}
+readme = 'README.md'
+requires-python = ">=3.11"
+dependencies = [
+  'fastapi',
+  'typer',
+  'uvicorn',
+  'rich',
+  'pyjwt',
+  'argon2-cffi',
+  'python-multipart',
+  'aiosqlite',
+  'websockets',
+  'types-psutil',
+]
+
+[project.optional-dependencies]
+dev = ["black", "isort", "ruff", "pytest", "pytest-watch"]
+
+[project.scripts]
+madness = "server.__main__"
+
+[tool.setuptools]
+packages = ['server']
 
 [tool.ruff]
 ignore = ['E501']

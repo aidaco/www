@@ -29,7 +29,7 @@ class Rebuild(BaseModel):
 
 
 class Locations(BaseModel):
-    static: Path = Path("dist")
+    static: Path | None = None
     database: Path = Path("aidan.software.sqlite3")
 
 
@@ -77,3 +77,6 @@ def locate(name: str):
 
 def dumps_toml(config: Config) -> str:
     return tomli_w.dumps(json.loads(config.json()))
+
+
+config = locate("aidan.software")

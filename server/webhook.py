@@ -3,6 +3,7 @@ import contextlib
 import hashlib
 import hmac
 import json
+import logging
 import os
 import shutil
 import subprocess
@@ -13,8 +14,9 @@ from typing import Annotated
 import psutil
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Request
 
-from . import core
+from .config import config
 
+log = logging.getLogger(__name__)
 api = APIRouter()
 
 
@@ -49,7 +51,7 @@ def rebuild_pyz():
         subprocess.run("./dev.py buildpyz", shell=True, capture_output=True, check=True)
     (git_dir / "aidan.software.pyz").replace(Path.cwd() / "aidan.software.pyz")
     shutil.rmtree(git_dir)
-    core.log.info("Successfully rebuilt. Restarting...")
+    log.info("Successfully rebuilt. Restarting...")
     os.execv(sys.executable, ["python", *sys.argv])
 
 
@@ -61,7 +63,7 @@ def rebuild_static():
         check=True,
         capture_output=True,
     )
-    core.log.info("Successfully rebuilt. Restarting...")
+    log.info("Successfully rebuilt. Restarting...")
     args = (sys.executable, (sys.executable, "-m", "server", *sys.argv[1:]))
     os.execv(*args)
 
@@ -69,8 +71,8 @@ def rebuild_static():
 async def rebuild():
     global rebuild_task
     # await cleanup()
-    core.log.info("Push received. Starting rebuild...")
-    if core.config.zipapp:
+    log.info("Push received. Starting rebuild...")
+    if config.zipapp:
         rebuild_pyz()
     else:
         rebuild_static()
@@ -124,13 +126,11 @@ async def receive_webhook(
         case _:
             return {"message": "Unknown: no action will be taken."}
     body = await request.body()
-    if core.config.rebuild is False:
+    if config.rebuild is False:
         return {"message": "Rebuild disabled."}
-    if core.config.rebuild.verify_signature:
-        verify_signature(body, x_hub_signature_256, core.config.rebuild.secret)
-    if core.config.rebuild.verify_branch and not verify_branch(
-        body, core.config.rebuild.branch
-    ):
+    if config.rebuild.verify_signature:
+        verify_signature(body, x_hub_signature_256, config.rebuild.secret)
+    if config.rebuild.verify_branch and not verify_branch(body, config.rebuild.branch):
         return {"message": "Not on default branch: no action will be taken."}
     background.add_task(rebuild)
     return {"message": "Push received, started upgrade."}

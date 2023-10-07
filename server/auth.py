@@ -5,7 +5,8 @@ from fastapi import APIRouter, Cookie, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
-from . import auth_backends, core
+from . import auth_backends
+from .config import config
 
 log = logging.getLogger(__name__)
 hasher = auth_backends.hasher()
@@ -26,7 +27,7 @@ class Authentication:
         cookie: Annotated[str | None, Cookie(alias="Authorization")] = None,
     ) -> str:
         token = header or cookie
-        if not (token and tokenizer.check(token, core.config.jwt.secret)):
+        if not (token and tokenizer.check(token, config.jwt.secret)):
             raise AuthenticationError()
         return token
 
@@ -41,24 +42,23 @@ class LoginRequest:
         self.scopes = form.scopes
         self.authenticated = self.authenticate()
 
-
     def authenticate(self) -> str:
         if not (
-            self.username == core.config.admin.username
-            and hasher.check(self.password, core.config.admin.password_hash)
+            self.username == config.admin.username
+            and hasher.check(self.password, config.admin.password_hash)
         ):
             raise HTTPException(status_code=401, detail="Invalid credentials.")
         return tokenizer.tokenize(
             {"id": self.username, "scopes": str(self.scopes)},
-            core.config.jwt.secret,
-            core.config.jwt.ttl,
+            config.jwt.secret,
+            config.jwt.ttl,
         )
 
 
 class RedirectForLogin:
     async def __call__(self, request: Request, exc: AuthenticationError):
         url = request.url
-        core.log.info(f"Hit {url} without authentication.")
+        log.info(f"Hit {url} without authentication.")
         return RedirectResponse(url="/login")
 
 

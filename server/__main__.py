@@ -3,14 +3,14 @@ from pathlib import Path
 from rich import print
 from typer import Typer
 
-from server import config, core
+from server import api, config
 
 cli = Typer()
 
 
 @cli.command()
 def run():
-    core.start()
+    api.run()
 
 
 @cli.command()

@@ -1,90 +1,73 @@
 import mimetypes
 import sys
 import zipfile
+from importlib.resources import files
+from pathlib import Path
 from typing import Protocol
 
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, Response
 from fastapi.responses import FileResponse, StreamingResponse
 
-from . import core
 from .auth import Auth
+from .config import config
 
 
-class FileNotFound(HTTPException):
-    def __init__(self):
-        super().__init__(status_code=404, detail="Not Found.")
+class ImportLoader:
+    def __init__(self, prefix: str):
+        self.base = files("server.static").joinpath(prefix)
+
+    def response(self, path: str):
+        return Response(
+            self.base.joinpath(path).read_bytes(),
+            media_type=mimetypes.guess_type(path)[0],
+        )
 
 
-class FSLoader:
-    def response(self, prefix: str, path: str):
-        if path.startswith("/"):
-            path = path[1:]
-        _path = core.config.locations.static / prefix / path
+class FileLoader:
+    def __init__(self, prefix: str):
+        assert config.locations.static is not None
+        self.base = config.locations.static / prefix
 
-        if _path.is_dir():
-            _path /= "index.html"
-        if not _path.exists() and _path.with_suffix('.html').exists():
-            _path = _p
-        if not _path.is_file():
-            raise FileNotFound()
-        return FileResponse(_path)
+    def response(self, path: str):
+        return FileResponse(self.base / path)
 
 
-class PYZLoader:
-    def __init__(
-        self,
-    ):
+class ZipLoader:
+    def __init__(self, prefix: str):
         self.pyz = zipfile.ZipFile(sys.argv[0])
+        self.prefix = prefix
 
     def streamfile(self, zinfo):
         with self.pyz.open(zinfo) as f:
             yield from f
 
-    def response(self, prefix: str, path: str):
-        if path.startswith("/"):
-            _path = path[1:]
-        _path = prefix + "/" + path
-
-        try:
-            zinfo = self.pyz.getinfo(_path)
-        except KeyError:
-            try:
-                _path += "/index.html"
-                zinfo = self.pyz.getinfo(_path)
-            except KeyError:
-                raise FileNotFound()
-
-        if zinfo.is_dir():
-            try:
-                zinfo = self.pyz.getinfo(_path + "index.html")
-            except KeyError:
-                raise FileNotFound()
-
+    def response(self, path: str):
+        zinfo = self.pyz.getinfo(f"{self.prefix}/{path}")
         return StreamingResponse(
             self.streamfile(zinfo), media_type=mimetypes.guess_type(zinfo.filename)[0]
         )
 
 
 class Loader(Protocol):
-    def response(self, prefix: str, path: str) -> Response:
+    def __init__(self, prefix: str):
+        ...
+
+    def response(self, path: str) -> Response:
         ...
 
 
-_loader: Loader
+def loader(prefix: str):
+    match config.locations.static:
+        case Path() as p if p.suffix == ".zip":
+            return ZipLoader(prefix)
+        case Path():
+            return FileLoader(prefix)
+        case None:
+            return ImportLoader(prefix)
 
 
-def loader():
-    global _loader
-    try:
-        return _loader
-    except NameError:
-        if core.config.zipapp:
-            _loader = PYZLoader()
-        else:
-            _loader = FSLoader()
-        return _loader
-
-
+public: Loader = loader("public")
+protected: Loader = loader("protected")
 api: APIRouter = APIRouter()
 
 
@@ -95,9 +78,15 @@ async def base_admin(auth: Auth):
 
 @api.get("/admin/{path:path}")
 async def protected_file(auth: Auth, path: str):
-    return loader().response("protected", path)
+    try:
+        return protected.response(path)
+    except Exception:
+        return protected.response("index.html")
 
 
 @api.get("/{path:path}")
 async def public_file(path: str):
-    return loader().response("public", path)
+    try:
+        return public.response(path)
+    except Exception:
+        return public.response("index.html")

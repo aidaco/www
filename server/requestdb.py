@@ -4,14 +4,14 @@ import aiosqlite
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from . import core
+from .config import config
 
 db: aiosqlite.Connection
 
 
 async def opendb():
     global db
-    db = await aiosqlite.connect(core.config.locations.database)
+    db = await aiosqlite.connect(config.locations.database)
     await db.execute(
         """CREATE TABLE IF NOT EXISTS requests(
          count INTEGER PRIMARY KEY AUTOINCREMENT,

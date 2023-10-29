@@ -1,6 +1,7 @@
 import mimetypes
 import sys
 import zipfile
+import re
 from importlib.resources import files
 from pathlib import Path
 from typing import Protocol
@@ -73,7 +74,7 @@ api: APIRouter = APIRouter()
 
 @api.get("/admin")
 async def base_admin(auth: Auth):
-    return await protected_file(auth, "")
+    return await protected_file(auth, "index.html")
 
 
 @api.get("/admin/{path:path}")
@@ -81,7 +82,10 @@ async def protected_file(auth: Auth, path: str):
     try:
         return protected.response(path)
     except Exception:
-        return protected.response("index.html")
+        try:
+            return protected.response(path+'.html')
+        except Exception:
+            return protected.response("index.html")
 
 
 @api.get("/{path:path}")
@@ -89,4 +93,13 @@ async def public_file(path: str):
     try:
         return public.response(path)
     except Exception:
-        return public.response("index.html")
+        try:
+            return public.response(path+'.html')
+        except Exception:
+            return public.response("index.html")
+
+_SUFF_RE = re.compile(r'^[^\.]*(\.[^\.]+)+$')
+
+
+def _has_suff(path: str):
+    return bool(_SUFF_RE.fullmatch(path))

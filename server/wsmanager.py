@@ -51,108 +51,170 @@ class WebSocketPool:
         return uid
 
 
-async def notify(
-    message: dict,
-    watchers: Sequence[Callable[..., Awaitable]],
+def notify(
+    watchers: Sequence[Callable],
+    **message,
 ):
-    if watchers:
-        await asyncio.gather(*(watcher(message) for watcher in watchers))
+    for watcher in watchers:
+        watcher(message)
 
 
-class StateValue:
-    def __init__(self, value):
-        self.value = value
+class StateProperty:
+    def __init__(self, default):
+        self.default = default
         self.watchers = set()
+        self.name = ''
 
-    async def watch(self, corofn: Callable[..., Awaitable]):
-        self.watchers.add(corofn)
-        await corofn(dict(event="state", value=self.value))
+    def watch(self, fn: Callable):
+        self.watchers.add(fn)
+        notify([fn], event="state", value=self.value)
 
-    def unwatch(self, corofn: Callable[..., Awaitable]):
-        self.watchers.remove(corofn)
+    def unwatch(self, fn: Callable):
+        self.watchers.remove(fn)
 
-    def get(self):
-        return self.value
+    def __set_name__(self, cls, name):
+        self.name = name
 
-    async def set(self, value):
-        self.value = value
-        await notify(dict(event="set", value=value), *self.watchers)
+    def __get__(self, obj, cls=None):
+        if obj is None:
+            return self
+        return getattr(obj, f'_{self.name}', self.default)
+
+    def __set__(self, obj, value):
+        setattr(obj, f'_{self.name}', value)
+        notify(self.watchers, event="set", value=value)
+
+
+class StateObject:
+    def __init__(self, value):
+        object.__setattr__(self, '__wrapped__', value)
+        object.__setattr__(self, '__watchers__', set())
+
+    def watch(self, fn: Callable):
+        self.__watchers__.add(fn)
+        notify([fn], event="state", value=self.__wrapped__)
+
+    def unwatch(self, fn: Callable):
+        self.__watchers__.remove(fn)
+
+    def __getattr__(self, name):
+        return getattr(self.__wrapped__, name)
+
+    def __setattr__(self, name, value):
+        object.__setattr__(self.__wrapped__, name, value)
+        notify(self.watchers, event="setattr", name=name, value=value)
+
+
+def _make_nested_statedict(d=None):
+    d = d if d is not None else dict()
+    return {
+        k: (
+            v
+            if not isinstance(v, dict) else
+            StateDict(_make_nested_statedict(v))
+        )
+        for k, v in d.items()
+    }
 
 
 class StateDict:
     def __init__(self, state: dict | None = None):
-        self.state = {} if state is None else state
-        self.global_watchers: set[Callable[..., Awaitable]] = set()
-        self.watchers: dict[str, list[Callable[..., Awaitable]]] = dict()
+        self.state = _make_nested_statedict(state)
+        self.global_watchers: set[Callable] = set()
+        self.watchers: dict[str, list[Callable]] = dict()
 
-    async def watch(self, uid: str, corofn: Callable[..., Awaitable]):
-        self.watchers.setdefault(uid, []).append(corofn)
-        await corofn(dict(event="state", value=self.state.get(uid, None)))
+    def watch(self, uid: str, fn: Callable):
+        self.watchers.setdefault(uid, []).append(fn)
+        notify([fn], event="state", value=self.state.get(uid, None))
 
-    def unwatch(self, uid: str, corofn: Callable[..., Awaitable]):
+    def unwatch(self, uid: str, fn: Callable):
         if watchers := self.watchers.get(uid, None):
-            watchers.remove(corofn)
+            watchers.remove(fn)
 
-    async def watch_all(self, corofn: Callable[..., Awaitable]):
-        self.global_watchers.add(corofn)
-        await corofn(dict(event="state", value=self.state))
+    def watch_all(self, fn: Callable):
+        self.global_watchers.add(fn)
+        notify([fn], event="state", value=self.state)
 
-    def unwatch_all(self, corofn: Callable[..., Awaitable]):
-        self.global_watchers.remove(corofn)
+    def unwatch_all(self, fn: Callable):
+        self.global_watchers.remove(fn)
 
-    def get(self, uid: str):
+    def __getitem__(self, uid: str):
         return self.state[uid]
 
-    def contains(self, uid: str):
-        return uid in self.state
-
-    __contains__ = contains
-    __getitem__ = get
-
-    async def set(self, uid: str, value):
+    def __setitem__(self, uid: str, value):
+        if isinstance(value, dict):
+            value = StateDict(_make_nested_statedict(value))
         self.state[uid] = value
-        await notify(
-            dict(event="set", uid=uid, value=value),
+        notify(
             [*(self.watchers.get(uid, [])), *(self.global_watchers)],
+            event="set", uid=uid, value=value,
         )
 
-    async def delete(self, uid: str):
+    def __delitem__(self, uid: str):
         if uid not in self.state:
             return
 
         del self.state[uid]
-        await notify(
-            dict(event="delete", uid=uid),
+        notify(
             [*self.watchers.get(uid, []), *self.global_watchers],
+            event="delete", uid=uid,
         )
+
+    def __contains__(self, uid: str):
+        return uid in self.state
+
+
+def _make_nested_statelist(l=None):
+    l = l if l is not None else list()
+    return [
+        e
+        if not isinstance(e, list) else
+        StateList(_make_nested_statelist(e))
+        for e in l
+    ]
 
 
 class StateList:
     def __init__(self, state: list | None = None):
-        self.state = [] if state is None else state
-        self.watchers: list[Callable[..., Awaitable]] = list()
+        self.state = _make_nested_statelist(state)
+        self.watchers: list[Callable] = list()
 
-    async def watch(self, corofn: Callable[..., Awaitable]):
-        self.watchers.append(corofn)
-        await corofn(dict(event="state", value=self.state))
+    def watch(self, fn: Callable):
+        self.watchers.append(fn)
+        notify([fn], event="state", value=self.state)
 
-    def unwatch(self, uid: str, corofn: Callable[..., Awaitable]):
-        self.watchers.remove(corofn)
+    def unwatch(self, uid: str, fn: Callable):
+        self.watchers.remove(fn)
 
-    def get(self, index: int):
+    def __getitem__(self, index: int):
         return self.state[index]
 
-    async def append(self, value):
+    def __setitem__(self, index: int, value):
+        if isinstance(value, list):
+            value = StateList(_make_nested_statelist(value))
+        self.state[index] = value
+        notify(self.watchers, event="update", index=index, value=value)
+
+    def append(self, value):
+        if isinstance(value, list):
+            value = StateList(_make_nested_statelist(value))
         self.state.append(value)
-        await notify(dict(event="append", value=value), self.watchers)
+        notify(self.watchers, event="insert", index=len(self.state)-1, value=value)
 
-    async def insert(self, index, value):
+    def insert(self, index, value):
+        if isinstance(value, list):
+            value = StateList(_make_nested_statelist(value))
         self.state.insert(index, value)
-        await notify(dict(event="insert", index=index, value=value), self.watchers)
+        notify(self.watchers, event="insert", index=index, value=value)
 
-    async def remove(self, value):
-        self.state.remove(value)
-        await notify(dict(event="remove", value=value), self.watchers)
+    def pop(self, index):
+        self.state.pop(index)
+        notify(self.watchers, event="remove", index=index, value=value)
+
+    def remove(self, value):
+        index = self.state.index(value)
+        self.state.pop(index)
+        notify(self.watchers, event="remove", index=index, value=value)
 
 
 class WebSocketAppProtocol(Protocol):

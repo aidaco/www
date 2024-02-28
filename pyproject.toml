@@ -29,10 +29,10 @@ dependencies = [
 dev = ["black", "isort", "ruff", "pytest", "pytest-watch"]
 
 [project.scripts]
-madness = "server.__main__"
+madness = "server.__main__:cli"
 
 [tool.setuptools]
-packages = ['server']
+packages = ['server', 'static']
 
 [tool.ruff]
 ignore = ['E501']

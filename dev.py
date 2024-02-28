@@ -1,28 +1,19 @@
 #!/usr/bin/env -S python3 -B
 
 import subprocess
-import contextlib
 import shutil
-import zipapp
 from pathlib import Path
-import tempfile
 
 from typer import Typer
 
 
-def sh(cmd, ck=True):
-    subprocess.run(cmd, shell=True, check=ck)
+def sh(cmd):
+    subprocess.run(cmd, shell=True, check=False)
 
 
-root_dir = Path.cwd()
-dist_dir = root_dir / 'dist'
-cache_dirs = [
-    root_dir/'.mypy_cache',
-    root_dir/'.ruff_cache',
-    root_dir/'.pytest_cache',
-    *root_dir.glob('*.egg-info'),
-    *root_dir.rglob("__pycache__"),
-]
+PROJ_DIR = Path.cwd()
+BUILD_DIR = PROJ_DIR / "build"
+DIST_DIR = PROJ_DIR / "dist"
 
 cli = Typer()
 
@@ -34,39 +25,50 @@ def test():
 
 @cli.command()
 def fix():
-    sh("python -m black server")
-    sh("python -m isort server")
-    sh("python -m ruff server --fix", ck=False)
+    sh("python -m black .")
+    sh("python -m isort .")
+    sh("python -m ruff . --fix")
 
 
 @cli.command()
 def check():
-    sh("python -m mypy server", ck=False)
+    sh("python -m mypy .")
 
 
 @cli.command()
 def clean(
     dry: bool = False,
     dist: bool = True,
-    caches: bool = True,
+    build: bool = True,
+    patterns: list[str] = [
+        ".mypy_cache",
+        ".ruff_cache",
+        ".pytest_cache",
+        "*.egg-info",
+        "**/__pycache__",
+    ],
 ):
-    dirs = []
-    if dist:
-        dirs.append(dist_dir)
-    if caches:
-        dirs.extend(cache_dirs)
+    targets = []
+    if dist and DIST_DIR.exists():
+        targets.append(DIST_DIR)
+    if build and BUILD_DIR.exists():
+        targets.append(BUILD_DIR)
+    for pattern in patterns:
+        targets.extend(PROJ_DIR.glob(pattern))
+
+    print(*(target.resolve() for target in targets), sep="\n")
 
     if dry:
-        print(*dirs, sep="\n")
         return
-    for d in dirs:
-        shutil.rmtree(d, ignore_errors=True)
+
+    for target in targets:
+        shutil.rmtree(target, ignore_errors=True)
 
 
 @cli.command()
 def build():
     clean()
-    sh('python -m build')
+    sh("python -m build")
 
 
 if __name__ == "__main__":

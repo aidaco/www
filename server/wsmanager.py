@@ -63,7 +63,7 @@ class StateProperty:
     def __init__(self, default):
         self.default = default
         self.watchers = set()
-        self.name = ''
+        self.name = ""
 
     def watch(self, fn: Callable):
         self.watchers.add(fn)
@@ -78,17 +78,17 @@ class StateProperty:
     def __get__(self, obj, cls=None):
         if obj is None:
             return self
-        return getattr(obj, f'_{self.name}', self.default)
+        return getattr(obj, f"_{self.name}", self.default)
 
     def __set__(self, obj, value):
-        setattr(obj, f'_{self.name}', value)
+        setattr(obj, f"_{self.name}", value)
         notify(self.watchers, event="set", value=value)
 
 
 class StateObject:
     def __init__(self, value):
-        object.__setattr__(self, '__wrapped__', value)
-        object.__setattr__(self, '__watchers__', set())
+        object.__setattr__(self, "__wrapped__", value)
+        object.__setattr__(self, "__watchers__", set())
 
     def watch(self, fn: Callable):
         self.__watchers__.add(fn)
@@ -108,11 +108,7 @@ class StateObject:
 def _make_nested_statedict(d=None):
     d = d if d is not None else dict()
     return {
-        k: (
-            v
-            if not isinstance(v, dict) else
-            StateDict(_make_nested_statedict(v))
-        )
+        k: (v if not isinstance(v, dict) else StateDict(_make_nested_statedict(v)))
         for k, v in d.items()
     }
 
@@ -147,7 +143,9 @@ class StateDict:
         self.state[uid] = value
         notify(
             [*(self.watchers.get(uid, [])), *(self.global_watchers)],
-            event="set", uid=uid, value=value,
+            event="set",
+            uid=uid,
+            value=value,
         )
 
     def __delitem__(self, uid: str):
@@ -157,7 +155,8 @@ class StateDict:
         del self.state[uid]
         notify(
             [*self.watchers.get(uid, []), *self.global_watchers],
-            event="delete", uid=uid,
+            event="delete",
+            uid=uid,
         )
 
     def __contains__(self, uid: str):
@@ -167,9 +166,7 @@ class StateDict:
 def _make_nested_statelist(l=None):
     l = l if l is not None else list()
     return [
-        e
-        if not isinstance(e, list) else
-        StateList(_make_nested_statelist(e))
+        e if not isinstance(e, list) else StateList(_make_nested_statelist(e))
         for e in l
     ]
 
@@ -199,7 +196,7 @@ class StateList:
         if isinstance(value, list):
             value = StateList(_make_nested_statelist(value))
         self.state.append(value)
-        notify(self.watchers, event="insert", index=len(self.state)-1, value=value)
+        notify(self.watchers, event="insert", index=len(self.state) - 1, value=value)
 
     def insert(self, index, value):
         if isinstance(value, list):

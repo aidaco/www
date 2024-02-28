@@ -13,7 +13,11 @@ def locate_static_file(directory: Path, path: str) -> Path:
     if not result.is_relative_to(directory):
         raise HTTPException(451)
     elif not result.exists():
+        if not result.name.endswith(".html"):
+            return locate_static_file(directory, f"{path}.html")
         raise HTTPException(404)
+    elif result.is_dir():
+        return locate_static_file(result, "index.html")
     return result
 
 

@@ -10,18 +10,21 @@ async function login(event) {
   })) {
     data.push(encodeURIComponent(k) + "=" + encodeURIComponent(v));
   }
-
-  var resp = await fetch("/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-    },
-    body: data.join("&"),
-  });
-  var respData = await resp.json();
-  console.log(`Success ${JSON.stringify(respData)}`);
-  document.cookie = `Authorization=${respData.access_token};secure;max-age=86400;`;
-  location.href = "/admin";
+  try {
+    var resp = await fetch("/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+      },
+      body: data.join("&"),
+    });
+    var respData = await resp.json();
+    console.log(`Success ${JSON.stringify(respData)}`);
+    document.cookie = `Authorization=${respData.access_token};secure;max-age=86400;`;
+    location.href = "/admin";
+  } catch (exc) {
+    alert('Failed to authenticate')
+  }
 }
 
 document.querySelector("button").onclick = login;

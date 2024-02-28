@@ -32,7 +32,7 @@ dev = ["black", "isort", "ruff", "pytest", "pytest-watch"]
 madness = "server.__main__:cli"
 
 [tool.setuptools]
-packages = ['server', 'static']
+packages = ['server']
 
 [tool.ruff]
 ignore = ['E501']

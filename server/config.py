@@ -18,7 +18,8 @@ class Admin(BaseModel):
 
 class JWT(BaseModel):
     secret: str
-    ttl: timedelta = timedelta(days=30)
+    access_ttl: timedelta = timedelta(minutes=10)
+    session_ttl: timedelta = timedelta(days=1)
 
 
 class Rebuild(BaseModel):

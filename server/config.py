@@ -28,8 +28,17 @@ class Rebuild(BaseModel):
     verify_branch: bool = True
 
 
+class Frontend(BaseModel):
+    directory: Path = Path("static/public")
+    cache: bool = True
+
+
+class AdminFrontend(BaseModel):
+    directory: Path = Path("static/protected")
+    cache: bool = True
+
+
 class Locations(BaseModel):
-    static: Path | None = None
     database: Path = Path("aidan.software.sqlite3")
 
 
@@ -37,6 +46,8 @@ class Config(BaseModel):
     admin: Admin
     jwt: JWT
     rebuild: Rebuild | Literal[False] = False
+    frontend: Frontend = Field(default_factory=Frontend)
+    admin_frontend: AdminFrontend = Field(default_factory=AdminFrontend)
     locations: Locations = Field(default_factory=Locations)
     zipapp: bool = sys.argv[0].endswith("pyz")
 

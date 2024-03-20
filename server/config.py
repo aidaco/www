@@ -6,9 +6,7 @@ from pathlib import Path
 from typing import Literal
 
 import tomli_w
-from pydantic import BaseModel, Field, parse_obj_as
-
-from . import auth_backends
+from pydantic import BaseModel, Field, TypeAdapter
 
 
 class Admin(BaseModel):
@@ -18,8 +16,9 @@ class Admin(BaseModel):
 
 class JWT(BaseModel):
     secret: str
+    algorithm: str = "HS256"
     access_ttl: timedelta = timedelta(minutes=10)
-    session_ttl: timedelta = timedelta(days=1)
+    refresh_ttl: timedelta = timedelta(days=30)
 
 
 class Rebuild(BaseModel):
@@ -61,21 +60,7 @@ def read(path: Path):
             load = json.loads
         case _:
             raise ValueError("Config file must be TOML or JSON.")
-    return parse_obj_as(Config, load(path.read_text()))
-
-
-def create(username: str, password: str, jwt_secret: str, path: Path):
-    path.write_text(
-        dumps_toml(
-            Config(
-                admin=Admin(
-                    username=username,
-                    password_hash=auth_backends.hasher().hash(password),
-                ),
-                jwt=JWT(secret=jwt_secret),
-            )
-        )
-    )
+    return TypeAdapter(Config).validate_python(load(path.read_text()))
 
 
 def locate(name: str):

@@ -1,30 +1,51 @@
 let username = document.querySelector("input[name=username]");
 let password = document.querySelector("input[name=password]");
 
-async function login(event) {
+async function formFetch(url, parts) {
   var data = [];
-  for (var [k, v] of Object.entries({
-    username: username.value,
-    password: password.value,
-    grant_type: "password",
-  })) {
+  for (var [k, v] of Object.entries(parts)) {
     data.push(encodeURIComponent(k) + "=" + encodeURIComponent(v));
   }
-  try {
-    var resp = await fetch("/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-      },
-      body: data.join("&"),
-    });
-    var respData = await resp.json();
-    console.log(`Success ${JSON.stringify(respData)}`);
-    document.cookie = `Authorization=${respData.access_token};secure;max-age=86400;`;
+
+  return await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+    },
+    body: data.join("&"),
+  })
+}
+
+async function checkRefresh() {
+  var response = await formFetch(
+    '/auth/token',
+    {
+      grant_type: "refresh_token",
+      response_type: "cookie"
+    }
+  )
+  if (response.ok) {
     location.href = "/admin";
-  } catch (exc) {
-    alert('Failed to authenticate')
+  }
+  await response.arrayBuffer()
+}
+
+async function login() {
+  var response = await formFetch(
+    '/auth/token',
+    {
+      username: username.value,
+      password: password.value,
+      grant_type: "password",
+      response_type: "cookie"
+    }
+  )
+  if (response.ok) {
+    location.href = "/admin";
+  } else {
+    alert('Failed to authenticate');
   }
 }
 
-document.querySelector("button").onclick = login;
+addEventListener('load', checkRefresh)
+document.querySelector("button").addEventListener('click', login);

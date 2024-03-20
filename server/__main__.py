@@ -3,7 +3,7 @@ from pathlib import Path
 from rich import print
 from typer import Typer
 
-from server import api, config
+from server import api, config, auth_base
 
 cli = Typer()
 
@@ -15,8 +15,16 @@ def run():
 
 @cli.command()
 def initconfig(path: Path = Path("aidan.software.toml")):
-    config.create(
-        input("Admin username:"), input("Admin password:"), input("JWT secret:"), path
+    path.write_text(
+        config.dumps_toml(
+            config.Config(
+                admin=config.Admin(
+                    username=input("Admin username:"),
+                    password_hash=auth_base.hash_password(input("Admin password:")),
+                ),
+                jwt=config.JWT(secret=input("JWT Secret:")),
+            )
+        )
     )
 
 

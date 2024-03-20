@@ -19,7 +19,6 @@ async def lifespan(app: FastAPI):
 api = FastAPI(lifespan=lifespan)
 api.add_middleware(requestdb.LogRequests)
 api.include_router(webhook.api)
-api.add_exception_handler(auth.AuthenticationError, auth.redirect_for_login)
 api.include_router(auth.api)
 api.include_router(livecontrol.api)
 api.include_router(staticfiles.api)

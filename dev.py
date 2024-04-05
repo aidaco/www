@@ -41,6 +41,7 @@ def clean(
     dist: bool = True,
     build: bool = True,
     patterns: list[str] = [
+        ".coverage",
         ".mypy_cache",
         ".ruff_cache",
         ".pytest_cache",

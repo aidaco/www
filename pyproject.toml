@@ -35,4 +35,8 @@ madness = "server.__main__:cli"
 packages = ['server']
 
 [tool.ruff]
-ignore = ['E501']
+lint.ignore = ['E501']
+target-version = 'py312'
+
+[tool.pyright]
+pythonVersion = '3.12'

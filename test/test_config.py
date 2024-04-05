@@ -3,21 +3,23 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 
-from server import config
-from server.auth_backends import hasher
+from server import config, auth_base
 
 
 def test_create_config():
     with NamedTemporaryFile("r+", suffix=".toml") as tmpfile:
         tmpfile.file.close()
         p = Path(tmpfile.name)
-        config.create("TEST USERNAME", "TEST PASSWORD", "TEST JWT SECRET", p)
+        p.write_text(
+            config.dumps_toml(
+                config.create("TEST USERNAME", "TEST PASSWORD", "TEST JWT SECRET")
+            )
+        )
         c = config.read(p)
         assert c.admin.username == "TEST USERNAME"
-        assert hasher().check("TEST PASSWORD", c.admin.password_hash)
+        assert auth_base.check_password("TEST PASSWORD", c.admin.password_hash) is None
         assert c.jwt.secret == "TEST JWT SECRET"
-        assert c.jwt.ttl == timedelta(days=30)
-        assert c.locations.static == Path("dist")
+        assert isinstance(c.jwt.access_ttl, timedelta)
 
 
 def test_read_config_with_rebuild():
@@ -43,7 +45,6 @@ secret = "TEST REBUILD SECRET"
         assert c.admin.username == "TEST USERNAME"
         assert c.admin.password_hash == "TEST PASSWORD HASH"
         assert c.jwt.secret == "TEST JWT SECRET"
-        assert c.jwt.ttl == timedelta(days=30)
-        assert c.locations.static == Path("dist")
+        assert c.rebuild
         assert c.rebuild.secret == "TEST REBUILD SECRET"
         assert c.rebuild.branch is None

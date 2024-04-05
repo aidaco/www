@@ -8,6 +8,8 @@ from typing import Literal
 import tomli_w
 from pydantic import BaseModel, Field, TypeAdapter
 
+from server.auth_base import hash_password
+
 
 class Admin(BaseModel):
     username: str
@@ -52,6 +54,48 @@ class Config(BaseModel):
     zipapp: bool = sys.argv[0].endswith("pyz")
 
 
+def create(
+    username: str,
+    password: str,
+    jwt_secret: str,
+    jwt_algorithm: str = "HS256",
+    jwt_access_ttl: timedelta = timedelta(minutes=10),
+    jwt_refresh_ttl: timedelta = timedelta(days=30),
+    rebuild: Rebuild | Literal[False] = False,
+    rebuild_secret: str | None = None,
+    rebuild_branch: str | None = None,
+    rebuild_verify_signature: bool = True,
+    rebuild_verify_branch: bool = True,
+    static_directory: Path = Path("static/public"),
+    static_cache: bool = True,
+    admin_static_directory: Path = Path("static/protected"),
+    admin_static_cache: bool = True,
+    database: Path = Path("aidan.software.sqlite3"),
+) -> Config:
+    return Config(
+        admin=Admin(username=username, password_hash=hash_password(password)),
+        jwt=JWT(
+            secret=jwt_secret,
+            algorithm=jwt_algorithm,
+            access_ttl=jwt_access_ttl,
+            refresh_ttl=jwt_refresh_ttl,
+        ),
+        rebuild=Rebuild(
+            secret=rebuild_secret,
+            branch=rebuild_branch,
+            verify_signature=rebuild_verify_signature,
+            verify_branch=rebuild_verify_branch,
+        )
+        if rebuild and rebuild_secret and rebuild_branch
+        else False,
+        frontend=Frontend(directory=static_directory, cache=static_cache),
+        admin_frontend=AdminFrontend(
+            directory=admin_static_directory, cache=admin_static_cache
+        ),
+        locations=Locations(database=database),
+    )
+
+
 def read(path: Path):
     match path.suffix:
         case ".toml":
@@ -73,7 +117,7 @@ def locate(name: str):
 
 
 def dumps_toml(config: Config) -> str:
-    return tomli_w.dumps(json.loads(config.json()))
+    return tomli_w.dumps(json.loads(config.model_dump_json()))
 
 
 config = locate("aidan.software")

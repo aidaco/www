@@ -1,6 +1,6 @@
 import logging
-from typing import Annotated, TypeAlias
-from datetime import timedelta
+from typing import Annotated, TypeAlias, Self
+from datetime import timedelta, datetime, timezone
 
 from fastapi import (
     APIRouter,
@@ -11,12 +11,69 @@ from fastapi import (
     Form,
 )
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+import pydantic
 
 from .config import config
-from .auth_base import TokenData, UserData, CredentialError
+from .auth_base import check_password, encode_token, decode_token, CredentialError
 
 
 log = logging.getLogger(__name__)
+
+
+class TokenData(pydantic.BaseModel):
+    userid: str
+    scopes: list[str]
+    exp: datetime
+
+    @classmethod
+    def accesstoken(
+        cls, userid: str, scopes: list[str] | None = None, dur: timedelta | None = None
+    ) -> Self:
+        return TokenData(
+            userid=userid,
+            scopes=scopes if scopes is not None else [],
+            exp=datetime.now(tz=timezone.utc) + (dur or config.jwt.access_ttl),
+        )
+
+    @classmethod
+    def refreshtoken(
+        cls, userid: str, scopes: list[str] | None = None, dur: timedelta | None = None
+    ) -> Self:
+        return TokenData(
+            userid=userid,
+            scopes=scopes if scopes is not None else [],
+            exp=datetime.now(tz=timezone.utc) + (dur or config.jwt.refresh_ttl),
+        )
+
+    def encode(self, secret: str | None = None, algorithm: str | None = None) -> str:
+        return encode_token(
+            self.model_dump(),
+            secret or config.jwt.secret,
+            algorithm or config.jwt.algorithm,
+        )
+
+    @classmethod
+    def decode(
+        cls, token: str, secret: str | None = None, algorithm: str | None = None
+    ) -> Self:
+        try:
+            return cls.model_validate(
+                decode_token(
+                    token,
+                    secret or config.jwt.secret,
+                    algorithm or config.jwt.algorithm,
+                )
+            )
+        except pydantic.ValidationError:
+            raise CredentialError("Malformed token")
+
+
+class UserData(pydantic.BaseModel):
+    username: str
+    password_hash: str
+
+    def verify(self, password: str):
+        check_password(password, self.password_hash)
 
 
 def get_user(username: str) -> UserData:

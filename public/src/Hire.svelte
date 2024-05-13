@@ -1,13 +1,10 @@
 <div class="container">
   <div class="overflow">
     <span>
-      Are you looking for a driven and passionate software developer to join
-      your team? Look no further! I am actively searching for an entry-to-mid
-      level position at an organization that emphasizes ongoing professional
-      development. Python has been my language of choice for the past few years,
-      but I pride myself on quickly adapting to new technologies. I encourage
-      you to review my <a href="/resume.pdf">my resume</a> and contact me at your
-      convenience.
+      Do you need a driven software developer to bolster your team?
+      Look no further!
+      I am actively searching for a full-time software development position; kindly review my <a href="/resume.pdf">resume</a> and contact me at your convenience.
+      If you need a short-term or specialized arrangement, let's talk about your project! I am happy to provide contract-based development services.
     </span>
   </div>
 </div>

@@ -1,4 +1,4 @@
-#!/usr/bin/env -S python3.11 -B
+#!/usr/bin/env -S python3 -B
 
 import subprocess
 import contextlib
@@ -42,7 +42,6 @@ def clean(
     dist: bool = True,
     caches: list[str] = ["__pycache__", ".mypy_cache", ".ruff_cache"],
 ):
-
     dirs = []
     if build:
         dirs.append(build_dir)

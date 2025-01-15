@@ -1,5 +1,7 @@
 # Personal Website
 
+Note: this project has moved [here](https://github.com/aidaco/www-min)
+
 Source for my personal site.
 
 ## Features
